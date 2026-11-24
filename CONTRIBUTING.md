@@ -1,66 +1,66 @@
-# Contribuer à ScannBook
+# Contributing to ScannBook
 
-Le projet suit le **GitHub Flow** : une seule branche longue, `main`, toujours fonctionnelle ; une branche courte par issue ; une pull request pour tout changement ; un merge en **squash** ; la branche supprimée après le merge.
+The project follows **GitHub Flow**: a single long-lived branch, `main`, always working; one short-lived branch per issue; a pull request for every change; **squash** merges; the branch is deleted after merging.
 
-Il n'y a ni branche `dev`, ni CI, ni protection automatique de `main`. Ces règles sont donc tenues à la main, et la première est simple : **jamais de `git push origin main`**.
+There is no `dev` branch, no CI and no automatic protection on `main`. These rules are therefore enforced by hand, and the first one is simple: **never `git push origin main`**.
 
-## Le cycle d'une tâche
+## Task lifecycle
 
-1. Prendre l'issue et la passer dans **En cours** sur le board (une seule carte à la fois).
-2. Partir d'un `main` à jour :
+1. Pick the issue and move it to **In progress** on the board (one card at a time).
+2. Start from an up-to-date `main`:
 
    ```bash
    git switch main && git pull
    git switch -c feat/12-barcode-scanner
    ```
 
-3. Committer petit et souvent, en [Conventional Commits](#conventional-commits).
+3. Commit small and often, using [Conventional Commits](#conventional-commits).
 
-4. Faire relire la PR (voir [Reviews](#reviews)).
-5. Si `main` a bougé :
+4. Get the PR reviewed (see [Reviews](#reviews)).
+5. If `main` has moved:
 
    ```bash
    git fetch && git rebase origin/main
    git push --force-with-lease
    ```
 
-6. Merger avec **Squash and merge** puis supprimer la branche, ou en ligne de commande : `gh pr merge <n> --squash --delete-branch`. L'issue se ferme grâce à `Closes #12`.
+6. Merge with **Squash and merge**, then delete the branch, or from the command line: `gh pr merge <n> --squash --delete-branch`. The issue is closed by `Closes #12`.
 
 ## Branches
 
-Format : `<type>/<numéro-issue>-<description-courte>`, en anglais et en kebab-case.
+Format: `<type>/<issue-number>-<short-description>`, in English and kebab-case.
 
-| Type        | Usage                                           | Exemple                      |
-| ----------- | ----------------------------------------------- | ---------------------------- |
-| `feat/`     | Nouvelle fonctionnalité                         | `feat/12-barcode-scanner`    |
-| `fix/`      | Correction de bug                               | `fix/27-duplicate-scan`      |
-| `docs/`     | README, ADR, documentation                      | `docs/3-adr-supabase`        |
-| `chore/`    | Configuration, dépendances, outillage           | `chore/5-pr-template`        |
-| `refactor/` | Restructuration sans changement de comportement | `refactor/8-move-app-to-src` |
-| `test/`     | Ajout de tests seuls                            | `test/30-isbn-checksum`      |
+| Type        | Usage                                  | Example                      |
+| ----------- | -------------------------------------- | ---------------------------- |
+| `feat/`     | New feature                            | `feat/12-barcode-scanner`    |
+| `fix/`      | Bug fix                                | `fix/27-duplicate-scan`      |
+| `docs/`     | README, ADRs, documentation            | `docs/3-adr-supabase`        |
+| `chore/`    | Configuration, dependencies, tooling   | `chore/5-pr-template`        |
+| `refactor/` | Restructuring without behavior change  | `refactor/8-move-app-to-src` |
+| `test/`     | Tests only                             | `test/30-isbn-checksum`      |
 
-Une branche vit moins d'une journée. Si elle grossit, coupez-la en deux PR.
+A branch lives less than a day. If it grows, split it into two PRs.
 
 ## Conventional Commits
 
-Format : `<type>(<scope>): <description>`. La description est à l'impératif, en anglais, en minuscules, sans point final, et le tout fait moins de 72 caractères.
+Format: `<type>(<scope>): <description>`. The description is imperative, in English, lowercase, with no trailing period, and the whole line is under 72 characters.
 
-Types : `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`.
+Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`.
 
-| Scope         | Périmètre                                         |
-| ------------- | ------------------------------------------------- |
-| `scan`        | Caméra, lecture des codes-barres                  |
-| `api`         | Client et adapter Google Books                    |
-| `auth`        | Inscription, connexion, session, garde des routes |
-| `db`          | Supabase : schéma, politiques RLS, repository     |
-| `library`     | Écran bibliothèque, piles, statuts                |
-| `book`        | Fiche livre                                       |
-| `search`      | Recherche                                         |
-| `ui`          | Composants partagés                               |
-| `nav`         | Routes, layouts                                   |
-| `deps`, `adr` | Dépendances, décisions d'architecture             |
+| Scope         | Area                                          |
+| ------------- | --------------------------------------------- |
+| `scan`        | Camera, barcode reading                       |
+| `api`         | Google Books client and adapter               |
+| `auth`        | Sign up, sign in, session, route guards       |
+| `db`          | Supabase: schema, RLS policies, repository    |
+| `library`     | Library screen, shelves, statuses             |
+| `book`        | Book details                                  |
+| `search`      | Search                                        |
+| `ui`          | Shared components                             |
+| `nav`         | Routes, layouts                               |
+| `deps`, `adr` | Dependencies, architecture decisions          |
 
-Exemples :
+Examples:
 
 ```text
 feat(scan): lock scanner after first valid ISBN
@@ -73,26 +73,26 @@ test(lib): cover ISBN-10 to ISBN-13 conversion
 feat(library)!: rename status "owned" to "to_read"
 ```
 
-Le `!` signale un changement cassant (ici, il faudrait migrer les données). Le corps du commit est optionnel ; s'il est présent, il explique le _pourquoi_.
+The `!` marks a breaking change (here, the data would need migrating). The commit body is optional; when present, it explains the _why_.
 
 ## Pull requests
 
-- **Une PR = une issue = un sujet.** Visez moins de 300 lignes modifiées.
-- **Le titre suit Conventional Commits** : c'est lui qui devient le commit sur `main` après le squash. Vérifiez-le avant de cliquer sur _Squash and merge_.
-- **Description** : quoi, pourquoi, comment tester, et des captures d'écran pour tout ce qui touche l'interface.
-- `Closes #<numéro>` dans la description.
-- **Labels** : `feature`, `bug`, `docs` ou `chore`, plus la priorité et le domaine.
+- **One PR = one issue = one topic.** Aim for fewer than 300 changed lines.
+- **The title follows Conventional Commits**: it becomes the commit on `main` after the squash. Check it before clicking _Squash and merge_.
+- **Description**: what, why, how to test, and screenshots for anything that touches the UI.
+- `Closes #<number>` in the description.
+- **Labels**: `feature`, `bug`, `docs` or `chore`, plus priority and area.
 
-## Conflits
+## Conflicts
 
-- `src/types/book.ts` est le fichier à risque. Ne le modifiez que dans une PR dédiée, mergée vite.
-- `pnpm-lock.yaml` : ne résolvez pas un conflit à la main. Reprenez la version de `main`, puis relancez `pnpm install`.
-- Rebasez une branche ouverte sur `main` au moins une fois par demi-journée.
+- `src/types/Book.ts` is the risky file. Only change it in a dedicated PR, merged quickly.
+- `pnpm-lock.yaml`: don't resolve a conflict by hand. Take the version from `main`, then run `pnpm install` again.
+- Rebase an open branch on `main` at least once every half day.
 
-## Conventions de code
+## Code conventions
 
-- Fichiers en kebab-case (`use-book-lookup.ts`), composants en PascalCase.
-- Pas de `any` : les données externes restent `unknown` jusqu'à leur adapter.
-- Textes de l'interface en français ; code, noms de variables et commits en anglais.
-- Pas de requête SQL ni de `fetch` dans un composant : on passe toujours par `src/data/` et un hook.
-- Les modules natifs s'installent avec `pnpm expo install <package>` pour obtenir des versions compatibles avec le SDK.
+- Files and components in PascalCase (`BookCard.tsx`, `GoogleBooks.ts`). Route files in `src/app/` are the exception: they use kebab-case, following the [Expo Router notation](https://docs.expo.dev/router/basics/notation/) (`sign-in.tsx`, `book/[id].tsx`, `_layout.tsx`).
+- No `any`: external data stays `unknown` until it goes through its adapter.
+- UI text in French; code, variable names and commits in English.
+- No SQL query or `fetch` in a component: always go through `src/data/` and a hook.
+- Native modules are installed with `pnpm expo install <package>` to get SDK-compatible versions.
