@@ -1,56 +1,186 @@
-# Welcome to your Expo app 👋
+# ScannBook
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Scan a book, put it on your shelf, track your reading.**
 
-## Get started
+![Expo SDK 58](https://img.shields.io/badge/Expo-SDK%2058-000020?logo=expo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20Postgres-3FCF8E?logo=supabase&logoColor=white)
 
-1. Install dependencies
+ScannBook is a mobile app (iOS and Android) that identifies a book from its barcode, shows its details from Google Books, and puts it on a reading shelf. Every reader has an account and finds their shelves in their own space, on any phone.
 
-   ```bash
-   npm install
-   ```
+## Context
 
-2. Start the app
+A course project built in one week, from November 24 to 27, 2026, with a final presentation on Friday. It is graded as much on the product as on the way we work: branches, Conventional Commits, pull requests, reviews and ADRs.
 
-   ```bash
-   npx expo start
-   ```
+**The MVP in one sentence:** I create my account, scan a book, see its details, add it to a shelf, and find my library filtered by shelf when I sign back in.
 
-In the output, you'll find options to open the app in a
+## Features
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (labelled *Envies*, *À lire*, *En cours*, *Lu*, *Abandonné* in the app, whose UI is in French). A book is always on exactly one shelf, and moving it to another shelf updates its reading dates automatically.
 
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+| Priority | Features |
+| --- | --- |
+| **Must** (MVP) | Sign up, sign in, sign out · ISBN scan · manual ISBN entry · book details · add to a shelf · library filtered by shelf · move to another shelf · remove |
+| **Should** | Search by title or author · start and finish dates · page progress |
+| **Could** | Password reset · sorting · statistics |
+| **Out of scope** | Google/Apple sign-in · offline mode · sharing · ratings and reviews |
 
-## Get a fresh project
+> Screenshots will be added to `docs/screenshots/` as features ship.
 
-When you're ready, run:
+## Stack
+
+| Need | Choice | ADR |
+| --- | --- | --- |
+| Platform | React Native (iOS + Android, a single codebase) | [0001](docs/adr/0001-adopt-react-native.md) |
+| Framework | Expo SDK 58, tested on a phone with Expo Go | 0002 |
+| Navigation | Expo Router: `(auth)` / `(app)` groups, tabs + Stack | 0002 |
+| Language | Strict TypeScript | 0002 |
+| Package manager | pnpm | 0002 |
+| Book data | Google Books API v1 (`fetch` + adapter) | 0003 |
+| Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | 0004 |
+| Scanning | `expo-camera` (`CameraView` + `barcodeScannerSettings`) | 0005 |
+| State | Hooks + `AuthProvider` / `LibraryProvider` (Context), no library | 0006 |
+| Quality | `pnpm lint` and `pnpm typecheck` run manually before each PR | 0007 |
+| Session | `@supabase/supabase-js` + AsyncStorage | 0009 |
+
+ADRs without a link are still to be written: see the [decision index](docs/adr/README.md).
+
+## Getting started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) LTS
+- [pnpm](https://pnpm.io/installation): `npm install -g pnpm`
+- The [Expo Go](https://expo.dev/go) app on your phone
+- A [Supabase](https://supabase.com/) project, with *Confirm email* turned off in the *Authentication* settings (Email provider)
+- A [Google Books API](https://console.cloud.google.com/apis/library/books.googleapis.com) key
+
+### Installation
 
 ```bash
-npm run reset-project
+git clone https://github.com/AlexandreRichert/ScannBook.git
+cd ScannBook
+pnpm install
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+### Environment variables
 
-### Other setup steps
+```bash
+cp .env.example .env
+```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+Then fill in the three variables in `.env`:
 
-## Learn more
+| Variable | Where to find it |
+| --- | --- |
+| `EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY` | Google Cloud Console → Credentials |
+| `EXPO_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API (*anon* / *publishable* key) |
 
-To learn more about developing your project with Expo, look at the following resources:
+`.env` is ignored by Git. Only `.env.example`, with empty values, is committed.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Database
 
-## Join the community
+The schema (`books` table and RLS policies) will be versioned in `supabase/schema.sql`. To create it, run that file in the **SQL Editor** of your Supabase project.
 
-Join our community of developers creating universal apps.
+### Run the app
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+pnpm start
+```
+
+Scan the QR code with Expo Go (Android) or the Camera app (iOS).
+
+| Script | Purpose |
+| --- | --- |
+| `pnpm start` | Start the Expo development server |
+| `pnpm android` / `pnpm ios` | Open the app on an Android emulator or iOS simulator |
+| `pnpm web` | Open the web version |
+| `pnpm lint` | Lint (ESLint via `expo lint`) |
+| `pnpm typecheck` | Type checking (`tsc --noEmit`) |
+
+## Keys and security
+
+Variables prefixed with `EXPO_PUBLIC_` are **embedded in the app bundle**: anyone can extract them. They are therefore not secret, by design:
+
+- **The Google Books key** is restricted to the Books API only, with a capped quota in the Google Cloud Console.
+- **The Supabase *anon* key** is meant to be public. Data is protected by **Row Level Security**: every row in `books` carries its owner's `user_id`, and Postgres rejects any read or write from another account. The app itself never filters by user.
+- **The Supabase `service_role` key** is never used in the app.
+
+## Architecture
+
+Dependencies flow in one direction only, from routes to data. Each external service sits behind a single file in `src/data/`, and `src/lib/` (pure business logic) depends on nothing.
+
+```mermaid
+flowchart LR
+  subgraph Routes["src/app — routes"]
+    Auth["(auth)<br/>sign-in, sign-up"]
+    Tabs["(app)/(tabs)<br/>Library, Scan, Search"]
+    Detail["(app)/book/[id]"]
+  end
+  subgraph UI["src/components"]
+    Cards["BookCard, StatusPicker,<br/>Cover, EmptyState"]
+  end
+  subgraph Hooks["src/hooks"]
+    HA["useAuth<br/>(AuthProvider)"]
+    H1["useBookLookup<br/>useBookSearch"]
+    H2["useLibrary<br/>(LibraryProvider)"]
+  end
+  subgraph Data["src/data"]
+    SB["supabase.ts<br/>client"]
+    GB["google-books.ts<br/>+ adapter"]
+    Repo["library-repository.ts"]
+  end
+  subgraph Lib["src/lib — pure logic"]
+    Isbn["isbn.ts"]
+    Status["status.ts"]
+  end
+  Routes --> UI
+  Routes --> Hooks
+  HA --> SB
+  H2 --> Repo
+  Repo --> SB
+  H1 --> GB
+  GB --> API[(Google Books)]
+  SB --> Cloud[(Supabase<br/>Auth + Postgres)]
+  Hooks --> Lib
+  Data --> Lib
+```
+
+Target structure (the Expo template code will be replaced over the next PRs):
+
+```text
+src/
+  app/                      # Expo Router routes
+    _layout.tsx             # AuthProvider + redirect based on session
+    (auth)/                 # sign-in, sign-up
+    (app)/
+      _layout.tsx           # Stack + LibraryProvider
+      (tabs)/               # Library, Scan, Search
+      book/[id].tsx         # book details
+      isbn.tsx              # manual ISBN entry (modal)
+  components/
+    ui/                     # Button, TextField, EmptyState, ErrorState, Loader
+    book/                   # BookCard, Cover, StatusPicker, ProgressBar
+  data/                     # supabase.ts, google-books.ts, library-repository.ts
+  hooks/                    # use-auth, use-book-lookup, use-book-search, use-library
+  lib/                      # isbn.ts, status.ts
+  types/                    # book.ts (shared contract)
+supabase/
+  schema.sql                # books table + RLS policies
+```
+
+## Contributing
+
+GitHub Flow: one short-lived branch per issue (`feat/12-barcode-scanner`), Conventional Commits, a reviewed PR for every change, squash merge, then the branch is deleted. Full details in [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Decisions
+
+Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/README.md).
+
+## Team
+
+| Member | Role | GitHub |
+| --- | --- | --- |
+| Alexandre | Development, documentation | [@AlexandreRichert](https://github.com/AlexandreRichert) |
+| *Teammate* | *To be completed* | — |
