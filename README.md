@@ -16,34 +16,30 @@ A course project built in one week, from November 24 to 27, 2026, with a final p
 
 ## Features
 
-Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (labelled *Envies*, *À lire*, *En cours*, *Lu*, *Abandonné* in the app, whose UI is in French). A book is always on exactly one shelf, and moving it to another shelf updates its reading dates automatically.
+Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (labelled _Envies_, _À lire_, _En cours_, _Lu_, _Abandonné_ in the app, whose UI is in French). A book is always on exactly one shelf, and moving it to another shelf updates its reading dates automatically.
 
-| Priority | Features |
-| --- | --- |
-| **Must** (MVP) | Sign up, sign in, sign out · ISBN scan · manual ISBN entry · book details · add to a shelf · library filtered by shelf · move to another shelf · remove |
-| **Should** | Search by title or author · start and finish dates · page progress |
-| **Could** | Password reset · sorting · statistics |
-| **Out of scope** | Google/Apple sign-in · offline mode · sharing · ratings and reviews |
+| Priority         | Features                                                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Must** (MVP)   | Sign up, sign in, sign out · ISBN scan · manual ISBN entry · book details · add to a shelf · library filtered by shelf · move to another shelf · remove |
+| **Should**       | Search by title or author · start and finish dates · page progress                                                                                      |
+| **Could**        | Password reset · sorting · statistics                                                                                                                   |
+| **Out of scope** | Google/Apple sign-in · offline mode · sharing · ratings and reviews                                                                                     |
 
 > Screenshots will be added to `docs/screenshots/` as features ship.
 
 ## Stack
 
-| Need | Choice | ADR |
-| --- | --- | --- |
-| Platform | React Native (iOS + Android, a single codebase) | [0001](docs/adr/0001-adopt-react-native.md) |
-| Framework | Expo SDK 58, tested on a phone with Expo Go | 0002 |
-| Navigation | Expo Router: `(auth)` / `(app)` groups, tabs + Stack | 0002 |
-| Language | Strict TypeScript | 0002 |
-| Package manager | pnpm | 0002 |
-| Book data | Google Books API v1 (`fetch` + adapter) | 0003 |
-| Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | 0004 |
-| Scanning | `expo-camera` (`CameraView` + `barcodeScannerSettings`) | 0005 |
-| State | Hooks + `AuthProvider` / `LibraryProvider` (Context), no library | 0006 |
-| Quality | `pnpm lint` and `pnpm typecheck` run manually before each PR | 0007 |
-| Session | `@supabase/supabase-js` + AsyncStorage | 0009 |
+| Need                 | Choice                                                           | ADR                                         |
+| -------------------- | ---------------------------------------------------------------- | ------------------------------------------- |
+| Platform             | React Native (iOS + Android, a single codebase)                  | [0001](docs/adr/0001-adopt-react-native.md) |
+| Framework            | Expo SDK 58, tested on a phone with Expo Go                      | [0001](docs/adr/0001-adopt-react-native.md) |
+| Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack             | —                                           |
+| Language             | Strict TypeScript                                                | [0001](docs/adr/0001-adopt-react-native.md) |
+| Book data            | Google Books API v1 (`fetch` + adapter)                          | -                                           |
+| Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | -                                           |
+| Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)          | -                                           |
 
-ADRs without a link are still to be written: see the [decision index](docs/adr/README.md).
+All recorded decisions are listed in the [ADR index](docs/adr/README.md).
 
 ## Getting started
 
@@ -52,7 +48,7 @@ ADRs without a link are still to be written: see the [decision index](docs/adr/R
 - [Node.js](https://nodejs.org/) LTS
 - [pnpm](https://pnpm.io/installation): `npm install -g pnpm`
 - The [Expo Go](https://expo.dev/go) app on your phone
-- A [Supabase](https://supabase.com/) project, with *Confirm email* turned off in the *Authentication* settings (Email provider)
+- A [Supabase](https://supabase.com/) project, with _Confirm email_ turned off in the _Authentication_ settings (Email provider)
 - A [Google Books API](https://console.cloud.google.com/apis/library/books.googleapis.com) key
 
 ### Installation
@@ -71,11 +67,11 @@ cp .env.example .env
 
 Then fill in the three variables in `.env`:
 
-| Variable | Where to find it |
-| --- | --- |
-| `EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY` | Google Cloud Console → Credentials |
-| `EXPO_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API (*anon* / *publishable* key) |
+| Variable                           | Where to find it                                               |
+| ---------------------------------- | -------------------------------------------------------------- |
+| `EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY` | Google Cloud Console → Credentials                             |
+| `EXPO_PUBLIC_SUPABASE_URL`         | Supabase → Project Settings → API                              |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | Supabase → Project Settings → API (_anon_ / _publishable_ key) |
 
 `.env` is ignored by Git. Only `.env.example`, with empty values, is committed.
 
@@ -91,23 +87,21 @@ pnpm start
 
 Scan the QR code with Expo Go (Android) or the Camera app (iOS).
 
-| Script | Purpose |
-| --- | --- |
-| `pnpm start` | Start the Expo development server |
+| Script                      | Purpose                                              |
+| --------------------------- | ---------------------------------------------------- |
+| `pnpm start`                | Start the Expo development server                    |
 | `pnpm android` / `pnpm ios` | Open the app on an Android emulator or iOS simulator |
-| `pnpm web` | Open the web version |
-| `pnpm lint` | Lint (ESLint via `expo lint`) |
-| `pnpm typecheck` | Type checking (`tsc --noEmit`) |
+| `pnpm web`                  | Open the web version                                 |
+| `pnpm lint`                 | Lint (ESLint via `expo lint`)                        |
+| `pnpm typecheck`            | Type checking (`tsc --noEmit`)                       |
 
 ## Keys and security
 
 Variables prefixed with `EXPO_PUBLIC_` are **embedded in the app bundle**: anyone can extract them. They are therefore not secret, by design:
 
 - **The Google Books key** is restricted to the Books API only, with a capped quota in the Google Cloud Console.
-- **The Supabase *anon* key** is meant to be public. Data is protected by **Row Level Security**: every row in `books` carries its owner's `user_id`, and Postgres rejects any read or write from another account. The app itself never filters by user.
+- **The Supabase _anon_ key** is meant to be public. Data is protected by **Row Level Security**: every row in `books` carries its owner's `user_id`, and Postgres rejects any read or write from another account. The app itself never filters by user.
 - **The Supabase `service_role` key** is never used in the app.
-
-## Architecture
 
 Dependencies flow in one direction only, from routes to data. Each external service sits behind a single file in `src/data/`, and `src/lib/` (pure business logic) depends on nothing.
 
@@ -180,7 +174,7 @@ Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/README.md).
 
 ## Team
 
-| Member | Role | GitHub |
-| --- | --- | --- |
-| Alexandre | Development, documentation | [@AlexandreRichert](https://github.com/AlexandreRichert) |
-| *Teammate* | *To be completed* | — |
+| Member     | Role                       | GitHub                                                   |
+| ---------- | -------------------------- | -------------------------------------------------------- |
+| Alexandre  | Development, documentation | [@AlexandreRichert](https://github.com/AlexandreRichert) |
+| _Teammate_ | _To be completed_          | —                                                        |
