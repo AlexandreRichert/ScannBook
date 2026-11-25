@@ -1,3 +1,4 @@
+
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type PropsWithChildren } from 'react';
 
@@ -8,6 +9,7 @@ type AuthContextValue = {
   session: Session | null;
   isLoading: boolean;
   /** Resolves to a French error message, or null on success. */
+  signUp: (email: string, password: string) => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 };
@@ -41,7 +43,15 @@ export function AuthProvider({ children }: PropsWithChildren) {
     await supabase.auth.signOut();
   }
 
-  return <AuthContext value={{ session, isLoading, signIn, signOut }}>{children}</AuthContext>;
+  async function signUp(email: string, password: string) {
+    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password });
+    if (error) return authErrorMessage(error.code);
+    // Only happens if "Confirm email" is turned back on in Supabase
+    if (!data.session) return 'Compte créé : confirme ton adresse email avant de te connecter.';
+    return null;
+  }
+
+  return <AuthContext value={{ session, isLoading, signIn, signOut, signUp }}>{children}</AuthContext>;
 }
 
 export function useAuth() {
