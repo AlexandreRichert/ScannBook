@@ -10,6 +10,8 @@ type BookCoverProps = {
   title: string;
   coverUrl?: string;
   width?: number;
+  /** Overrides the theme colors of the placeholder. */
+  placeholderColors?: { background: string; text: string };
 };
 
 /**
@@ -18,7 +20,7 @@ type BookCoverProps = {
  *
  * Give it a `key` tied to the book so the error state resets between books.
  */
-export function BookCover({ title, coverUrl, width = 120 }: BookCoverProps) {
+export function BookCover({ title, coverUrl, width = 120, placeholderColors }: BookCoverProps) {
   const theme = useTheme();
   const [failed, setFailed] = useState(false);
   const size = { width, height: width * 1.5 };
@@ -26,10 +28,17 @@ export function BookCover({ title, coverUrl, width = 120 }: BookCoverProps) {
   if (!coverUrl || failed) {
     return (
       <View
-        style={[styles.placeholder, size, { backgroundColor: theme.backgroundSelected }]}
+        style={[
+          styles.placeholder,
+          size,
+          { backgroundColor: placeholderColors?.background ?? theme.backgroundSelected },
+        ]}
         accessibilityRole="image"
         accessibilityLabel={`Pas de couverture pour ${title}`}>
-        <ThemedText type="smallBold" style={styles.placeholderTitle} numberOfLines={5}>
+        <ThemedText
+          type="smallBold"
+          style={[styles.placeholderTitle, placeholderColors && { color: placeholderColors.text }]}
+          numberOfLines={5}>
           {title}
         </ThemedText>
       </View>
