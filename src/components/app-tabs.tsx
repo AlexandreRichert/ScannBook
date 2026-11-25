@@ -20,9 +20,14 @@ export default function AppTabs() {
         />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="scan">
+        <NativeTabs.Trigger.Label>Scanner</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="barcode.viewfinder" md="barcode_scanner" />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="isbn-test">
         <NativeTabs.Trigger.Label>ISBN</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="barcode.viewfinder" md="search" />
+        <NativeTabs.Trigger.Icon sf="keyboard" md="keyboard" />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="explore">
