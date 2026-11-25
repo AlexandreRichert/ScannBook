@@ -36,7 +36,7 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack             | —                                           |
 | Language             | Strict TypeScript                                                | [0001](docs/adr/0001-adopt-react-native.md) |
 | Book data            | Google Books API v1 (`fetch` + adapter)                          | -                                           |
-| Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | -                                           |
+| Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | [0003](docs/adr/0003-library-supabase.md)          |
 | Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)          | -                                           |
 
 All recorded decisions are listed in the [ADR index](docs/adr/README.md).
