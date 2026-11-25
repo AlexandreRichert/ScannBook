@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,13 +17,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/Button';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import {
-  useBookByIsbn,
-  type BookByIsbnState,
-  type GoogleBooksError,
-  type IsbnInvalidReason,
-} from '@/hooks/useBookByIsbn';
+import { useBookByIsbn, type BookByIsbnState } from '@/hooks/useBookByIsbn';
 import { useTheme } from '@/hooks/use-theme';
+import { bookLookupErrorMessage, invalidIsbnMessage } from '@/lib/BookLookupMessages';
 
 /** Quick fills for the acceptance criteria. */
 const EXAMPLES = [
@@ -31,30 +28,6 @@ const EXAMPLES = [
   { label: 'Invalide', value: '9782253249604' },
   { label: 'Tirets typographiques', value: '978–2–253–24960–3' },
 ];
-
-const INVALID_ISBN_MESSAGES: Record<IsbnInvalidReason, string> = {
-  empty: 'Saisis un ISBN.',
-  length: 'ISBN invalide : il faut 10 ou 13 chiffres.',
-  characters:
-    'ISBN invalide : seuls les chiffres sont acceptés (et X en dernière position d’un ISBN-10).',
-  prefix: 'ISBN invalide : un ISBN-13 commence par 978 ou 979.',
-  checksum: 'ISBN invalide : la clé de contrôle ne correspond pas, vérifie la saisie.',
-};
-
-function errorMessage(error: GoogleBooksError): string {
-  switch (error.kind) {
-    case 'network':
-      return 'Impossible de joindre Google Books. Vérifie ta connexion internet.';
-    case 'missing-key':
-      return 'Clé API manquante : ajoute EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY dans .env puis relance Expo.';
-    case 'http':
-      if (error.status === 403) return 'Clé API refusée par Google Books (403).';
-      if (error.status === 429) return 'Quota Google Books dépassé (429). Réessaie plus tard.';
-      return `Google Books a renvoyé une erreur (${error.status ?? 'inconnue'}).`;
-    case 'invalid-response':
-      return 'Réponse inattendue de Google Books.';
-  }
-}
 
 export default function IsbnTestScreen() {
   const theme = useTheme();
@@ -137,6 +110,8 @@ type ResultProps = {
 };
 
 function Result({ state, onRetry, onEditIsbn, onFixIsbn }: ResultProps) {
+  const router = useRouter();
+
   switch (state.status) {
     case 'idle':
       return (
@@ -147,7 +122,7 @@ function Result({ state, onRetry, onEditIsbn, onFixIsbn }: ResultProps) {
     case 'invalid':
       return (
         <View style={styles.message}>
-          <ThemedText>{INVALID_ISBN_MESSAGES[state.reason]}</ThemedText>
+          <ThemedText>{invalidIsbnMessage(state.reason)}</ThemedText>
           <Button
             label={state.reason === 'empty' ? 'Saisir un ISBN' : 'Corriger l’ISBN'}
             onPress={onFixIsbn}
@@ -166,12 +141,17 @@ function Result({ state, onRetry, onEditIsbn, onFixIsbn }: ResultProps) {
     case 'error':
       return (
         <View style={styles.message}>
-          <ThemedText>{errorMessage(state.error)}</ThemedText>
+          <ThemedText>{bookLookupErrorMessage(state.error)}</ThemedText>
           <Button label="Réessayer" onPress={onRetry} />
         </View>
       );
     case 'success':
-      return <BookDetails book={state.book} />;
+      return (
+        <View style={styles.message}>
+          <BookDetails book={state.book} />
+          <Button label="Voir la fiche" onPress={() => router.push(`/book/${state.isbn13}`)} />
+        </View>
+      );
   }
 }
 
