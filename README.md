@@ -35,11 +35,11 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | Framework            | Expo SDK 58, tested on a phone with Expo Go                      | [0001](docs/adr/0001-adopt-react-native.md) |
 | Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack             | —                                           |
 | Language             | Strict TypeScript                                                | [0001](docs/adr/0001-adopt-react-native.md) |
-| Book data            | Google Books API v1 (`fetch` + adapter)                          | -                                           |
+| Book data            | Google Books API v1 (`fetch` + adapter)                          | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
 | Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | -                                           |
 | Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)          | -                                           |
 
-All recorded decisions are listed in the [ADR index](docs/adr/README.md).
+All recorded decisions are listed in [docs/adr/](docs/adr/).
 
 ## Getting started
 
@@ -170,7 +170,7 @@ GitHub Flow: one short-lived branch per issue (`feat/12-barcode-scanner`), Conve
 
 ## Decisions
 
-Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/README.md).
+Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/).
 
 ## Team
 
