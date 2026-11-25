@@ -20,6 +20,7 @@ import {
   useBookByIsbn,
   type BookByIsbnState,
   type GoogleBooksError,
+  type IsbnInvalidReason,
 } from '@/hooks/useBookByIsbn';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -28,7 +29,17 @@ const EXAMPLES = [
   { label: 'ISBN-13', value: '9782253249603' },
   { label: 'ISBN-10', value: '2253249602' },
   { label: 'Invalide', value: '9782253249604' },
+  { label: 'Tirets typographiques', value: '978–2–253–24960–3' },
 ];
+
+const INVALID_ISBN_MESSAGES: Record<IsbnInvalidReason, string> = {
+  empty: 'Saisis un ISBN.',
+  length: 'ISBN invalide : il faut 10 ou 13 chiffres.',
+  characters:
+    'ISBN invalide : seuls les chiffres sont acceptés (et X en dernière position d’un ISBN-10).',
+  prefix: 'ISBN invalide : un ISBN-13 commence par 978 ou 979.',
+  checksum: 'ISBN invalide : la clé de contrôle ne correspond pas, vérifie la saisie.',
+};
 
 function errorMessage(error: GoogleBooksError): string {
   switch (error.kind) {
@@ -127,13 +138,7 @@ function Result({ state, onRetry, onEditIsbn }: ResultProps) {
         </ThemedText>
       );
     case 'invalid':
-      return (
-        <ThemedText>
-          {state.reason === 'checksum'
-            ? 'ISBN invalide : la clé de contrôle ne correspond pas.'
-            : 'ISBN invalide : il faut 10 ou 13 caractères.'}
-        </ThemedText>
-      );
+      return <ThemedText>{INVALID_ISBN_MESSAGES[state.reason]}</ThemedText>;
     case 'loading':
       return <ActivityIndicator style={styles.loader} />;
     case 'not-found':

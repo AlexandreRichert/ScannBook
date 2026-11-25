@@ -1,16 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { fetchBookByIsbn, GoogleBooksError } from '@/data/GoogleBooks';
-import { parseIsbn } from '@/lib/Isbn';
+import { parseIsbn, type IsbnInvalidReason } from '@/lib/Isbn';
 import type { BookInfo } from '@/types/Book';
 
 // Re-exported so screens only depend on this hook, not on src/data/.
 export type { GoogleBooksError, GoogleBooksErrorKind } from '@/data/GoogleBooks';
+export type { IsbnInvalidReason } from '@/lib/Isbn';
 
 export type BookByIsbnState =
   | { status: 'idle' }
   /** Rejected before any network call. */
-  | { status: 'invalid'; reason: 'format' | 'checksum' }
+  | { status: 'invalid'; reason: IsbnInvalidReason }
   | { status: 'loading'; isbn13: string }
   | { status: 'success'; isbn13: string; book: BookInfo }
   | { status: 'not-found'; isbn13: string }
