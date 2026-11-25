@@ -68,8 +68,14 @@ export default function IsbnTestScreen() {
     search(value);
   };
 
+  /** Not found: the ISBN was valid, so start over with an empty field. */
   const editIsbn = () => {
     setInput('');
+    inputRef.current?.focus();
+  };
+
+  /** Invalid: keep what was typed so a typo can be fixed. */
+  const fixIsbn = () => {
     inputRef.current?.focus();
   };
 
@@ -116,7 +122,7 @@ export default function IsbnTestScreen() {
             ))}
           </View>
 
-          <Result state={state} onRetry={retry} onEditIsbn={editIsbn} />
+          <Result state={state} onRetry={retry} onEditIsbn={editIsbn} onFixIsbn={fixIsbn} />
         </ScrollView>
       </SafeAreaView>
     </ThemedView>
@@ -127,9 +133,10 @@ type ResultProps = {
   state: BookByIsbnState;
   onRetry: () => void;
   onEditIsbn: () => void;
+  onFixIsbn: () => void;
 };
 
-function Result({ state, onRetry, onEditIsbn }: ResultProps) {
+function Result({ state, onRetry, onEditIsbn, onFixIsbn }: ResultProps) {
   switch (state.status) {
     case 'idle':
       return (
@@ -138,7 +145,15 @@ function Result({ state, onRetry, onEditIsbn }: ResultProps) {
         </ThemedText>
       );
     case 'invalid':
-      return <ThemedText>{INVALID_ISBN_MESSAGES[state.reason]}</ThemedText>;
+      return (
+        <View style={styles.message}>
+          <ThemedText>{INVALID_ISBN_MESSAGES[state.reason]}</ThemedText>
+          <Button
+            label={state.reason === 'empty' ? 'Saisir un ISBN' : 'Corriger l’ISBN'}
+            onPress={onFixIsbn}
+          />
+        </View>
+      );
     case 'loading':
       return <ActivityIndicator style={styles.loader} />;
     case 'not-found':
