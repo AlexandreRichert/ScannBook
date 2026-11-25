@@ -17,6 +17,8 @@ const REJECTED_MESSAGE_MS = 3000;
  */
 export default function ScanScreen() {
   const router = useRouter();
+  // TODO(US-01): open the manual ISBN entry, a modal shown over the scanner
+  // (`/isbn`, Figma frame 05). Until it exists, the ISBN test tab stands in.
   const openManualEntry = () => router.navigate('/isbn-test');
 
   if (Platform.OS === 'web') {
@@ -34,19 +36,20 @@ export default function ScanScreen() {
 }
 
 function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
+  const router = useRouter();
   const [permission, requestPermission, getPermission] = useCameraPermissions();
   const [focused, setFocused] = useState(false);
   const [torch, setTorch] = useState(false);
-  const [scannedIsbn, setScannedIsbn] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
   const [rejected, setRejected] = useState(false);
   // The callback fires several times per second: a ref locks synchronously,
-  // before the state update is rendered.
+  // before the state update is rendered, so only one navigation happens.
   const lockedRef = useRef(false);
   const rejectedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resume = useCallback(() => {
     lockedRef.current = false;
-    setScannedIsbn(null);
+    setLocked(false);
     setRejected(false);
   }, []);
 
@@ -86,8 +89,8 @@ function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
       lockedRef.current = true;
       if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
       setRejected(false);
-      // TODO(#32): router.push(`/book/${parsed.isbn13}`) once the book screen is merged.
-      setScannedIsbn(parsed.isbn13);
+      setLocked(true);
+      router.push(`/book/${parsed.isbn13}`);
       return;
     }
 
@@ -148,16 +151,15 @@ function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
           style={StyleSheet.absoluteFill}
           facing="back"
           barcodeScannerSettings={{ barcodeTypes: ['ean13'] }}
-          onBarcodeScanned={scannedIsbn ? undefined : handleScan}
+          onBarcodeScanned={locked ? undefined : handleScan}
           enableTorch={torch}
         />
       )}
       <ScanOverlay
         torch={torch}
         onToggleTorch={() => setTorch((value) => !value)}
-        scannedIsbn={scannedIsbn}
+        locked={locked}
         rejected={rejected}
-        onRescan={resume}
         onManualEntry={onManualEntry}
       />
     </View>

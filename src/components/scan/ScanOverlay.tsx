@@ -14,11 +14,10 @@ const CORNER_RADIUS = 14;
 type ScanOverlayProps = {
   torch: boolean;
   onToggleTorch: () => void;
-  /** ISBN-13 accepted by the last read; scanning is locked while it is set. */
-  scannedIsbn: string | null;
+  /** A valid ISBN was read and the book screen is opening. */
+  locked: boolean;
   /** The last code read was an EAN-13 but not an ISBN. */
   rejected: boolean;
-  onRescan: () => void;
   onManualEntry: () => void;
 };
 
@@ -26,13 +25,12 @@ type ScanOverlayProps = {
 export function ScanOverlay({
   torch,
   onToggleTorch,
-  scannedIsbn,
+  locked,
   rejected,
-  onRescan,
   onManualEntry,
 }: ScanOverlayProps) {
   const insets = useSafeAreaInsets();
-  const cornerColor = scannedIsbn ? C.scanLine : C.onCamera;
+  const cornerColor = locked ? C.scanLine : C.onCamera;
 
   return (
     <View style={StyleSheet.absoluteFill}>
@@ -70,7 +68,7 @@ export function ScanOverlay({
           <View style={[styles.corner, styles.topRight, { borderColor: cornerColor }]} />
           <View style={[styles.corner, styles.bottomLeft, { borderColor: cornerColor }]} />
           <View style={[styles.corner, styles.bottomRight, { borderColor: cornerColor }]} />
-          {!scannedIsbn && <View style={styles.scanLine} />}
+          {!locked && <View style={styles.scanLine} />}
         </View>
         <View style={styles.veil} />
       </View>
@@ -78,20 +76,7 @@ export function ScanOverlay({
       {/* Bottom veil with the instructions, the result and the manual entry */}
       <View
         style={[styles.veil, styles.bottom, { paddingBottom: insets.bottom + BottomTabInset + 24 }]}>
-        {scannedIsbn ? (
-          <View style={styles.card} accessibilityLiveRegion="polite">
-            <Text style={styles.cardLabel}>ISBN détecté</Text>
-            <Text style={styles.cardIsbn} selectable>
-              {scannedIsbn}
-            </Text>
-            <Pressable
-              onPress={onRescan}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.rescan, pressed && styles.pressed]}>
-              <Text style={styles.rescanLabel}>Scanner à nouveau</Text>
-            </Pressable>
-          </View>
-        ) : rejected ? (
+        {rejected ? (
           <View style={styles.rejected} accessibilityLiveRegion="polite">
             <Text style={styles.rejectedText}>Ce code-barres n’est pas un ISBN</Text>
           </View>
@@ -102,19 +87,17 @@ export function ScanOverlay({
           </View>
         )}
 
-        {!scannedIsbn && (
-          <Pressable
-            onPress={onManualEntry}
-            accessibilityRole="button"
-            style={({ pressed }) => [styles.manualEntry, pressed && styles.pressed]}>
-            <SymbolView
-              name={{ ios: 'keyboard', android: 'keyboard', web: 'keyboard' }}
-              size={18}
-              tintColor={C.onCamera}
-            />
-            <Text style={styles.manualEntryLabel}>Saisir l’ISBN à la main</Text>
-          </Pressable>
-        )}
+        <Pressable
+          onPress={onManualEntry}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.manualEntry, pressed && styles.pressed]}>
+          <SymbolView
+            name={{ ios: 'keyboard', android: 'keyboard', web: 'keyboard' }}
+            size={18}
+            tintColor={C.onCamera}
+          />
+          <Text style={styles.manualEntryLabel}>Saisir l’ISBN à la main</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -231,41 +214,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '700',
     textAlign: 'center',
-  },
-  card: {
-    alignSelf: 'stretch',
-    backgroundColor: C.surface,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    gap: 6,
-  },
-  cardLabel: {
-    color: C.textSecondary,
-    fontSize: 14,
-    lineHeight: 17,
-  },
-  cardIsbn: {
-    color: C.text,
-    fontSize: 22,
-    lineHeight: 27,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  rescan: {
-    alignSelf: 'stretch',
-    minHeight: 52,
-    marginTop: 10,
-    borderRadius: 12,
-    backgroundColor: C.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rescanLabel: {
-    color: C.onPrimary,
-    fontSize: 16,
-    lineHeight: 19,
-    fontWeight: '700',
   },
   manualEntry: {
     marginTop: 'auto',
