@@ -37,9 +37,10 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | Language             | Strict TypeScript                                                | [0001](docs/adr/0001-adopt-react-native.md) |
 | Book data            | Google Books API v1 (`fetch` + adapter)                          | -                                           |
 | Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | [0003](docs/adr/0003-library-supabase.md)          |
+| Book data            | Google Books API v1 (`fetch` + adapter)                          | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
 | Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)          | -                                           |
 
-All recorded decisions are listed in the [ADR index](docs/adr/README.md).
+All recorded decisions are listed in [docs/adr/](docs/adr/).
 
 ## Getting started
 
@@ -170,7 +171,7 @@ GitHub Flow: one short-lived branch per issue (`feat/12-barcode-scanner`), Conve
 
 ## Decisions
 
-Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/README.md).
+Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/).
 
 ## Team
 
