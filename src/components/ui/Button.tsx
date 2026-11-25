@@ -8,9 +8,10 @@ type ButtonProps = {
   label: string;
   onPress: () => void;
   disabled?: boolean;
+  fullWidth?: boolean;
 };
 
-export function Button({ label, onPress, disabled = false }: ButtonProps) {
+export function Button({ label, onPress, disabled = false, fullWidth = false }: ButtonProps) {
   const theme = useTheme();
 
   return (
@@ -22,6 +23,7 @@ export function Button({ label, onPress, disabled = false }: ButtonProps) {
       style={({ pressed }) => [
         styles.button,
         { backgroundColor: theme.text },
+        fullWidth && styles.fullWidth,
         (pressed || disabled) && styles.dimmed,
       ]}>
       <ThemedText type="smallBold" style={{ color: theme.background }}>
@@ -40,6 +42,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: Spacing.two,
     minHeight: 44,
+  },
+  fullWidth: {
+    alignSelf: 'stretch',
   },
   dimmed: {
     opacity: 0.6,
