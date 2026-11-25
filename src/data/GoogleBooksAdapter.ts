@@ -116,11 +116,37 @@ function htmlToText(html: string): string {
     .trim()
 }
 
-/** Picks the best thumbnail, forces HTTPS and removes the curled-page effect. */
+/** Removes a trailing source note such as "[Source 4e couv.]". */
+function stripSourceNote(text: string): string {
+  return text.replace(/\s*\[\s*source\b[^\]]*\]\s*$/i, '').trim()
+}
+
+function readDescription(volumeInfo: UnknownRecord): string | undefined {
+  const description = readString(volumeInfo, 'description')
+  if (description === undefined) return undefined
+  return stripSourceNote(htmlToText(description)) || undefined
+}
+
+/**
+ * Keeps only the date part: `YYYY`, `YYYY-MM` or `YYYY-MM-DD`. Google Books
+ * also sends full timestamps such as `2025-11-05T00:00:00+01:00`.
+ */
+function readPublishedDate(volumeInfo: UnknownRecord): string | undefined {
+  return readString(volumeInfo, 'publishedDate')?.match(/^\d{4}(-\d{2}(-\d{2})?)?/)?.[0]
+}
+
+/**
+ * Prefers `small` (about 300 px wide, only on the volume endpoint) over
+ * `thumbnail` (about 128 px, blurry on high-density screens). Forces HTTPS
+ * and removes the curled-page effect.
+ */
 function readCoverUrl(volumeInfo: UnknownRecord): string | undefined {
   const imageLinks = volumeInfo.imageLinks
   if (!isRecord(imageLinks)) return undefined
-  const url = readString(imageLinks, 'thumbnail') ?? readString(imageLinks, 'smallThumbnail')
+  const url =
+    readString(imageLinks, 'small') ??
+    readString(imageLinks, 'thumbnail') ??
+    readString(imageLinks, 'smallThumbnail')
   return url?.replace(/^http:\/\//, 'https://').replace(/&edge=curl/, '')
 }
 
@@ -130,17 +156,16 @@ export function toBookInfo(volume: RawVolume, isbn13: string): BookInfo | undefi
   const title = readString(info, 'title')
   if (title === undefined) return undefined
 
-  const description = readString(info, 'description')
-
   return {
     isbn13,
     title,
     subtitle: readString(info, 'subtitle'),
     authors: readStringArray(info, 'authors'),
     publisher: readString(info, 'publisher'),
-    publishedDate: readString(info, 'publishedDate'),
-    pageCount: readPositiveInteger(info, 'pageCount') ?? readPositiveInteger(info, 'printedPageCount'),
-    description: description === undefined ? undefined : htmlToText(description) || undefined,
+    publishedDate: readPublishedDate(info),
+    // The printed count matches the physical book; `pageCount` can be the ebook's.
+    pageCount: readPositiveInteger(info, 'printedPageCount') ?? readPositiveInteger(info, 'pageCount'),
+    description: readDescription(info),
     coverUrl: readCoverUrl(info),
     language: readString(info, 'language'),
     googleBooksId: volume.id,
@@ -150,7 +175,8 @@ export function toBookInfo(volume: RawVolume, isbn13: string): BookInfo | undefi
 /**
  * Fills the gaps of `primary` (the detailed volume) with `fallback` (the search
  * result). The detailed volume is richer, but the search result sometimes has
- * a cover the detailed one lacks.
+ * a cover the detailed one lacks, or a more precise date (`2014-10-01` instead
+ * of `2014`).
  */
 export function mergeBookInfo(primary: BookInfo, fallback: BookInfo): BookInfo {
   const merged: BookInfo = { ...fallback }
@@ -160,5 +186,15 @@ export function mergeBookInfo(primary: BookInfo, fallback: BookInfo): BookInfo {
     }
   }
   if (primary.authors.length === 0) merged.authors = fallback.authors
+
+  // Same date, just more precise: keep the precise one.
+  if (
+    primary.publishedDate !== undefined &&
+    fallback.publishedDate !== undefined &&
+    fallback.publishedDate.length > primary.publishedDate.length &&
+    fallback.publishedDate.startsWith(primary.publishedDate)
+  ) {
+    merged.publishedDate = fallback.publishedDate
+  }
   return merged
 }
