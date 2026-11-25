@@ -1,6 +1,8 @@
+import { Link } from 'expo-router';
 import { useState } from 'react';
 
 import { AuthForm } from '@/components/auth/AuthForm';
+import { ThemedText } from '@/components/themed-text';
 import { TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -20,14 +22,22 @@ export default function SignInScreen() {
     setIsSubmitting(false);
   }
 
-  return (
+    return (
     <AuthForm
       title="Connexion"
       subtitle="Retrouve tes piles de lecture."
       error={error}
       submitLabel={isSubmitting ? 'Connexion…' : 'Se connecter'}
       canSubmit={canSubmit}
-      onSubmit={handleSubmit}>
+      onSubmit={handleSubmit}
+      footer={
+        <ThemedText type="small">
+          Pas encore de compte ?{' '}
+          <Link href="/sign-up">
+            <ThemedText type="linkPrimary">Créer un compte</ThemedText>
+          </Link>
+        </ThemedText>
+      }>
       <TextField
         label="Email"
         value={email}
