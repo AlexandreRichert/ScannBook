@@ -2,8 +2,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { AuthForm } from '@/components/auth/AuthForm';
-import { ThemedText } from '@/components/themed-text';
-import { TextField } from '@/components/ui/TextField';
+import { AuthLink, AuthPrompt } from '@/components/auth/AuthLink';
+import { FieldIcons, TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { validateSignUp, type SignUpErrors } from '@/lib/SignUpValidation';
 
@@ -43,16 +43,24 @@ export default function SignUpScreen() {
       submitLabel={isSubmitting ? 'Création…' : 'Créer mon compte'}
       canSubmit={canSubmit}
       onSubmit={handleSubmit}
+      back={{ label: 'Connexion', onPress: goToSignIn }}
       footer={
-        <ThemedText type="small">
-          Déjà un compte ?{' '}
-          <ThemedText type="linkPrimary" onPress={goToSignIn}>
-            Se connecter
-          </ThemedText>
-        </ThemedText>
+        <>
+          <AuthPrompt question="Déjà inscrit ?">
+            <AuthLink label="Se connecter" onPress={goToSignIn} />
+          </AuthPrompt>
+          <AuthPrompt question="Ce qu’on fait de tes données :">
+            <AuthLink
+              label="confidentialité"
+              tone="subtle"
+              href={{ pathname: '/legal', params: { page: 'confidentialite' } }}
+            />
+          </AuthPrompt>
+        </>
       }>
       <TextField
         label="Email"
+        icon={FieldIcons.email}
         value={email}
         onChangeText={setEmail}
         error={fieldErrors.email}
@@ -64,16 +72,19 @@ export default function SignUpScreen() {
       />
       <TextField
         label="Mot de passe"
+        icon={FieldIcons.password}
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}
-        placeholder="6 caractères minimum"
+        hint="6 caractères minimum"
         secureTextEntry
+        revealable
         autoComplete="new-password"
         textContentType="newPassword"
       />
       <TextField
-        label="Confirmation du mot de passe"
+        label="Confirmer le mot de passe"
+        icon={FieldIcons.password}
         value={confirmation}
         onChangeText={setConfirmation}
         error={fieldErrors.confirmation}
