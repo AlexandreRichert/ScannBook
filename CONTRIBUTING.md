@@ -16,15 +16,16 @@ There is no `dev` branch, no CI and no automatic protection on `main`. These rul
 
 3. Commit small and often, using [Conventional Commits](#conventional-commits).
 
-4. Get the PR reviewed (see [Reviews](#reviews)).
-5. If `main` has moved:
+4. Before opening the PR, run `pnpm test`, `pnpm lint` and `pnpm typecheck`.
+5. Get the PR reviewed (see [Reviews](#reviews)).
+6. If `main` has moved:
 
    ```bash
    git fetch && git rebase origin/main
    git push --force-with-lease
    ```
 
-6. Merge with **Squash and merge**, then delete the branch, or from the command line: `gh pr merge <n> --squash --delete-branch`. The issue is closed by `Closes #12`.
+7. Merge with **Squash and merge**, then delete the branch, or from the command line: `gh pr merge <n> --squash --delete-branch`. The issue is closed by `Closes #12`.
 
 ## Branches
 
@@ -89,6 +90,24 @@ The `!` marks a breaking change (here, the data would need migrating). The commi
 - `pnpm-lock.yaml`: don't resolve a conflict by hand. Take the version from `main`, then run `pnpm install` again.
 - Rebase an open branch on `main` at least once every half day.
 
+## Tests
+
+Tests run with Jest (`jest-expo` preset) and React Native Testing Library.
+
+```bash
+pnpm test          # run every test once
+pnpm test:watch    # re-run tests on file changes
+```
+
+- Put tests in a `__tests__/` folder next to the code they cover, named after the file: `src/lib/__tests__/Isbn.test.ts`, `src/components/ui/__tests__/Button.test.tsx`.
+- **Never put a test in `src/app/`**: Expo Router treats every file there as a route.
+- Import `describe`, `it`, `expect` and `jest` from `@jest/globals`. Jest globals are not typed project-wide, so app code can't use them by mistake.
+- Test names (`describe`, `it`) are in English, like the rest of the code. UI strings stay in French: `getByRole('button', { name: 'Ajouter' })`.
+- Unit tests cover pure functions in `src/lib/` and adapters in `src/data/`: one input, one expected output, no network.
+- Component tests find elements the way a screen reader does, with `screen.getByRole('button', { name: '…' })`, and use `userEvent` to press or type. `render` is async: always `await render(...)`.
+- Callbacks are `jest.fn()`. A component test never calls Supabase or Google Books.
+- `test(<scope>): …` is the commit type for a change that only adds or updates tests.
+
 ## Code conventions
 
 - Files and components in PascalCase (`BookCard.tsx`, `GoogleBooks.ts`). Route files in `src/app/` are the exception: they use kebab-case, following the [Expo Router notation](https://docs.expo.dev/router/basics/notation/) (`sign-in.tsx`, `book/[id].tsx`, `_layout.tsx`).
@@ -96,3 +115,4 @@ The `!` marks a breaking change (here, the data would need migrating). The commi
 - UI text in French; code, variable names and commits in English.
 - No SQL query or `fetch` in a component: always go through `src/data/` and a hook.
 - Native modules are installed with `pnpm expo install <package>` to get SDK-compatible versions.
+- Dev dependencies are the exception: install them with `pnpm add -D <package>@<version>`, using the version `pnpm expo install` would pick, then run `pnpm expo install --check`. Don't use `pnpm expo install <package> -- --dev`: with pnpm 12 it saves the package under `dependencies` and unlinks every runtime dependency from `node_modules`.
