@@ -1,16 +1,34 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BookCover } from '@/components/BookCover';
-import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { Fonts, Palette } from '@/constants/theme';
+import { spineFor } from '@/lib/Spines';
 import type { BookInfo } from '@/types/Book';
 
-const COVER_WIDTH = 140;
-/** About 4 lines at 15 px on a phone: shorter descriptions are shown whole. */
-const COLLAPSIBLE_DESCRIPTION_LENGTH = 180;
+const COVER_WIDTH = 136;
+/** About 3 lines at 15 px on a phone: shorter descriptions are shown whole. */
+const COLLAPSIBLE_DESCRIPTION_LENGTH = 140;
+/** Longer titles drop to the smaller display size so they stay on two lines. */
+const SHORT_TITLE_LENGTH = 14;
 
-/** Book details laid out as the « Fiche livre » mockup (Figma frame 07). */
-export function BookSheet({ book }: { book: BookInfo }) {
+/**
+ * Book details laid out as the « Fiche livre » mockups (Figma frames 07 and 10).
+ * `children` (the library actions) sit between the title and the summary, so the main action needs no scrolling.
+ * `footer` comes last, for the destructive action.
+ */
+export function BookSheet({
+  book,
+  badge,
+  children,
+  footer,
+}: {
+  book: BookInfo;
+  /** Shown above the metadata, e.g. « Dans ma bibliothèque ». */
+  badge?: ReactNode;
+  children?: ReactNode;
+  footer?: ReactNode;
+}) {
   const metadata = [
     { label: 'Éditeur', value: book.publisher },
     { label: 'Parution', value: book.publishedDate?.slice(0, 4) },
@@ -19,41 +37,54 @@ export function BookSheet({ book }: { book: BookInfo }) {
 
   return (
     <View style={styles.sheet}>
-      <View style={styles.coverWrapper}>
-        <View style={styles.coverShadow} />
-        <BookCover
-          key={book.isbn13}
-          title={book.title}
-          coverUrl={book.coverUrl}
-          width={COVER_WIDTH}
-          placeholderColors={{ background: C.coverPlaceholder, text: C.text }}
-        />
-      </View>
+      <View style={styles.hero}>
+        <View style={styles.stand}>
+          <View style={styles.book}>
+            <View style={[styles.spine, { backgroundColor: spineFor(book.isbn13).color }]}>
+              <View style={[styles.fillet, styles.filletTop]} />
+              <View style={[styles.fillet, styles.filletBottom]} />
+            </View>
+            <BookCover
+              key={book.isbn13}
+              isbn13={book.isbn13}
+              title={book.title}
+              authors={book.authors}
+              coverUrl={book.coverUrl}
+              width={COVER_WIDTH}
+            />
+          </View>
+          <View style={styles.shelf} />
+        </View>
 
-      <View style={styles.heading}>
-        <Text style={styles.title} accessibilityRole="header">
-          {book.title}
-        </Text>
-        {book.subtitle && <Text style={styles.subtitle}>{book.subtitle}</Text>}
-        <Text style={styles.authors}>
-          {book.authors.length > 0 ? book.authors.join(', ') : 'Auteur inconnu'}
-        </Text>
-      </View>
-
-      {metadata.length > 0 && (
         <View style={styles.metadata}>
+          {badge}
           {metadata.map((item, index) => (
-            <View key={item.label} style={[styles.metadataItem, index > 0 && styles.metadataDivider]}>
-              <Text style={styles.metadataLabel}>{item.label}</Text>
-              <Text style={styles.metadataValue} numberOfLines={1} adjustsFontSizeToFit>
+            <View key={item.label} style={styles.metadataGroup}>
+              {(index > 0 || badge !== undefined) && <View style={styles.rule} />}
+              <Text style={styles.caps}>{item.label}</Text>
+              <Text style={styles.metadataValue} numberOfLines={2}>
                 {item.value}
               </Text>
             </View>
           ))}
         </View>
-      )}
+      </View>
+
+      <View style={styles.heading}>
+        <Text
+          style={[styles.title, book.title.length <= SHORT_TITLE_LENGTH && styles.titleLarge]}
+          accessibilityRole="header">
+          {book.title}
+        </Text>
+        {book.subtitle && <Text style={styles.subtitle}>{book.subtitle}</Text>}
+        <Text style={styles.authors}>{book.authors.length > 0 ? book.authors.join(', ') : 'Auteur inconnu'}</Text>
+      </View>
+
+      {children}
 
       {book.description && <Description text={book.description} />}
+
+      {footer}
     </View>
   );
 }
@@ -64,10 +95,10 @@ function Description({ text }: { text: string }) {
 
   return (
     <View style={styles.description}>
-      <Text style={styles.sectionTitle} accessibilityRole="header">
+      <Text style={styles.caps} accessibilityRole="header">
         Résumé
       </Text>
-      <Text style={styles.descriptionText} numberOfLines={collapsible && !expanded ? 4 : undefined}>
+      <Text style={styles.descriptionText} numberOfLines={collapsible && !expanded ? 3 : undefined}>
         {text}
       </Text>
       {collapsible && (
@@ -75,7 +106,7 @@ function Description({ text }: { text: string }) {
           onPress={() => setExpanded((value) => !value)}
           accessibilityRole="button"
           hitSlop={8}
-          style={({ pressed }) => pressed && styles.pressed}>
+          style={({ pressed }) => [styles.readMoreButton, pressed && styles.pressed]}>
           <Text style={styles.readMore}>{expanded ? 'Réduire' : 'Lire la suite'}</Text>
         </Pressable>
       )}
@@ -83,96 +114,145 @@ function Description({ text }: { text: string }) {
   );
 }
 
+export const BOOK_SHEET_GUTTER = 24;
+
 const styles = StyleSheet.create({
   sheet: {
-    gap: 20,
+    gap: 14,
   },
-  coverWrapper: {
-    alignSelf: 'center',
-    marginBottom: -2,
+  hero: {
+    flexDirection: 'row',
+    gap: 12,
+    // The cover stand runs to the left edge of the screen, past the content padding
+    marginLeft: -BOOK_SHEET_GUTTER,
   },
-  coverShadow: {
-    position: 'absolute',
-    top: 6,
-    left: 4,
-    width: COVER_WIDTH,
-    height: COVER_WIDTH * 1.5,
-    borderRadius: 4,
-    backgroundColor: C.coverShadow,
-  },
-  heading: {
+  stand: {
+    width: 214,
+    height: 226,
+    justifyContent: 'flex-end',
     alignItems: 'center',
-    gap: 4,
+    borderTopRightRadius: 6,
+    borderBottomRightRadius: 6,
+    backgroundColor: Palette.paperSunken,
   },
-  title: {
-    color: C.text,
-    fontSize: 24,
-    lineHeight: 29,
-    fontWeight: '700',
-    textAlign: 'center',
+  book: {
+    flexDirection: 'row',
+    marginBottom: 9,
+    transform: [{ rotate: '-2deg' }],
   },
-  subtitle: {
-    color: C.textSecondary,
-    fontSize: 16,
-    lineHeight: 21,
-    fontWeight: '500',
-    textAlign: 'center',
+  spine: {
+    width: 15,
+    borderTopLeftRadius: 2,
+    borderBottomLeftRadius: 2,
+    experimental_backgroundImage:
+      'linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(255, 255, 255, 0.16) 40%, rgba(0, 0, 0, 0.26) 100%)',
   },
-  authors: {
-    color: C.textSecondary,
-    fontSize: 16,
-    lineHeight: 21,
-    textAlign: 'center',
+  fillet: {
+    position: 'absolute',
+    left: 2,
+    width: 11,
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+  },
+  filletTop: {
+    top: 16,
+  },
+  filletBottom: {
+    bottom: 18,
+  },
+  shelf: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 7,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
+    backgroundColor: Palette.wood,
+    experimental_backgroundImage:
+      'linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0.25) 100%)',
   },
   metadata: {
-    flexDirection: 'row',
-    backgroundColor: C.surface,
-    borderColor: C.border,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 11,
-  },
-  metadataItem: {
     flex: 1,
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 8,
+    paddingTop: 6,
+    paddingRight: BOOK_SHEET_GUTTER - 8,
+    gap: 10,
   },
-  metadataDivider: {
-    borderLeftColor: C.border,
-    borderLeftWidth: 1,
+  metadataGroup: {
+    gap: 2,
   },
-  metadataLabel: {
-    color: C.textMuted,
-    fontSize: 12,
-    lineHeight: 15,
+  rule: {
+    height: 1,
+    marginBottom: 10,
+    backgroundColor: Palette.line,
+  },
+  caps: {
+    color: Palette.inkTertiary,
+    fontFamily: Fonts.display,
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: '500',
+    letterSpacing: 0.88,
+    textTransform: 'uppercase',
   },
   metadataValue: {
-    color: C.text,
-    fontSize: 15,
-    lineHeight: 18,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 16,
+    lineHeight: 20,
     fontWeight: '700',
+    letterSpacing: -0.16,
+  },
+  heading: {
+    gap: 2,
+  },
+  title: {
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: '700',
+    letterSpacing: -1.05,
+  },
+  titleLarge: {
+    fontSize: 50,
+    lineHeight: 52,
+    letterSpacing: -2.25,
+  },
+  subtitle: {
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 16,
+    lineHeight: 22,
+    fontWeight: '500',
+  },
+  authors: {
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 16,
+    lineHeight: 24,
   },
   description: {
-    gap: 7,
-  },
-  sectionTitle: {
-    color: C.text,
-    fontSize: 17,
-    lineHeight: 21,
-    fontWeight: '700',
+    gap: 8,
+    marginTop: 14,
   },
   descriptionText: {
-    color: C.textSecondary,
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
     fontSize: 15,
     lineHeight: 22,
   },
+  readMoreButton: {
+    alignSelf: 'flex-start',
+  },
   readMore: {
-    color: C.primary,
-    fontSize: 15,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 14,
     lineHeight: 18,
     fontWeight: '700',
-    marginTop: 3,
+    letterSpacing: -0.07,
+    textDecorationLine: 'underline',
   },
   pressed: {
     opacity: 0.6,

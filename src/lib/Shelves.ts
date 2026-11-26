@@ -43,10 +43,12 @@ export function parseDay(day: string): Date {
   return new Date(year, month - 1, date);
 }
 
-/** `2026-11-26` → `26/11/2026`. */
+const SHORT_MONTHS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+
+/** `2026-11-12` → « 12 nov. 2026 ». */
 export function formatDay(day: string): string {
   const [year, month, date] = day.split('-');
-  return `${date}/${month}/${year}`;
+  return `${Number(date)} ${SHORT_MONTHS[Number(month) - 1]} ${year}`;
 }
 
 /** Reading dates a book gets when it lands on `shelf`, given the dates it already has. */

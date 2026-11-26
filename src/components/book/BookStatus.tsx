@@ -1,12 +1,24 @@
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Fonts, Palette } from '@/constants/theme';
 import type { GoogleBooksError } from '@/hooks/useBookByIsbn';
 import { bookLookupErrorMessage, bookLookupErrorTitle } from '@/lib/BookLookupMessages';
 
 type SymbolName = SymbolViewProps['name'];
+
+// Decorative spines of the Figma « Livre introuvable » illustration, the gap marks the missing book
+const SPINES = [
+  { color: '#2F4560', height: 88 },
+  { color: '#D9A814', height: 74 },
+  { color: '#B5532E', height: 100 },
+  null,
+  { color: '#7C9A6A', height: 68 },
+  { color: '#2B3B4E', height: 84 },
+  { color: '#7A2A30', height: 96 },
+];
 
 type BookStatusProps = {
   icon: SymbolName;
@@ -23,12 +35,23 @@ export function BookStatus({ icon, tone = 'neutral', title, children, actions }:
 
   return (
     <View style={styles.container}>
-      <View
-        style={[
-          styles.illustration,
-          { backgroundColor: isError ? C.errorIllustration : C.neutralIllustration },
-        ]}>
-        <SymbolView name={icon} size={36} tintColor={isError ? C.error : C.textSecondary} />
+      <View style={styles.illustration} importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
+        <View style={styles.halo} />
+        <View style={styles.spines}>
+          {SPINES.map((spine, index) =>
+            spine ? (
+              <View key={index} style={[styles.spine, { backgroundColor: spine.color, height: spine.height }]} />
+            ) : (
+              <View key={index} style={styles.missing}>
+                <Text style={styles.question}>?</Text>
+              </View>
+            ),
+          )}
+        </View>
+        <View style={styles.shelf} />
+        <View style={styles.badge}>
+          <SymbolView name={icon} size={28} tintColor={isError ? Palette.danger : Palette.ink} />
+        </View>
       </View>
       <Text style={styles.title} accessibilityRole="header">
         {title}
@@ -76,20 +99,16 @@ type StatusButtonProps = {
 
 export function StatusButton({ label, onPress, variant = 'primary', icon }: StatusButtonProps) {
   const isPrimary = variant === 'primary';
-  const color = isPrimary ? C.onPrimary : C.primary;
+  const color = isPrimary ? Palette.inkInverse : Palette.ink;
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.button,
-        isPrimary ? styles.primary : styles.secondary,
-        pressed && styles.pressed,
-      ]}>
+      style={[styles.button, isPrimary ? styles.primary : styles.secondary]}>
       {icon && <SymbolView name={icon} size={16} tintColor={color} />}
       <Text style={[styles.buttonLabel, { color }]}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -98,59 +117,116 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   illustration: {
-    width: 96,
+    width: 234,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginBottom: 28,
+  },
+  halo: {
+    position: 'absolute',
+    top: 8,
+    width: 190,
+    height: 190,
+    borderRadius: 95,
+    backgroundColor: Palette.paperSunken,
+  },
+  spines: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 3,
+  },
+  spine: {
+    width: 20,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+    experimental_backgroundImage:
+      'linear-gradient(90deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.04) 30%, rgba(0, 0, 0, 0.34) 100%)',
+  },
+  missing: {
+    width: 24,
     height: 96,
-    borderRadius: 48,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Palette.lineStrong,
+    borderRadius: 2,
+  },
+  question: {
+    marginTop: -28,
+    color: Palette.inkTertiary,
+    fontFamily: Fonts.display,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  shelf: {
+    alignSelf: 'stretch',
+    height: 9,
+    backgroundColor: Palette.wood,
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    backgroundColor: Palette.paperRaised,
   },
   title: {
-    color: C.text,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
     fontSize: 22,
-    lineHeight: 27,
+    lineHeight: 28,
     fontWeight: '700',
+    letterSpacing: -0.55,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   body: {
-    color: C.textSecondary,
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
     fontSize: 15,
     lineHeight: 24,
     textAlign: 'center',
   },
   strong: {
-    color: C.text,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 16,
     fontWeight: '700',
+    letterSpacing: -0.16,
   },
   actions: {
     alignSelf: 'stretch',
     gap: 12,
-    marginTop: 35,
+    marginTop: 28,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    minHeight: 52,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    gap: 8,
+    minHeight: 56,
+    paddingHorizontal: 20,
+    borderRadius: 4,
   },
   primary: {
-    backgroundColor: C.primary,
+    backgroundColor: Palette.ink,
+    experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
   },
   secondary: {
-    backgroundColor: C.surface,
-    borderColor: C.primary,
-    borderWidth: 1.5,
+    backgroundColor: Palette.paperRaised,
+    borderColor: Palette.lineStrong,
+    borderWidth: 1,
   },
   buttonLabel: {
+    fontFamily: Fonts.display,
     fontSize: 16,
-    lineHeight: 19,
+    lineHeight: 20,
     fontWeight: '700',
-  },
-  pressed: {
-    opacity: 0.7,
+    letterSpacing: -0.16,
   },
 });

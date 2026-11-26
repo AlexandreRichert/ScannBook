@@ -1,12 +1,15 @@
 import { DateTimePicker } from '@expo/ui/community/datetime-picker';
+import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { Fonts, Palette } from '@/constants/theme';
 import { formatDay, parseDay, toDay } from '@/lib/Shelves';
 
 type ReadingDateFieldProps = {
   label: string;
+  /** Shown while the date is not set, e.g. « Pas encore terminé ». */
+  emptyLabel: string;
   /** `YYYY-MM-DD`, or null when the date is not set yet. */
   value: string | null;
   minimumDay?: string | null;
@@ -15,8 +18,16 @@ type ReadingDateFieldProps = {
   onChange: (day: string) => void;
 };
 
-/** One reading date, editable with the platform date picker. */
-export function ReadingDateField({ label, value, minimumDay, maximumDay, disabled = false, onChange }: ReadingDateFieldProps) {
+/** One reading date as a field card (Figma frame 10), editable with the platform date picker. */
+export function ReadingDateField({
+  label,
+  emptyLabel,
+  value,
+  minimumDay,
+  maximumDay,
+  disabled = false,
+  onChange,
+}: ReadingDateFieldProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const minimumDate = minimumDay ? parseDay(minimumDay) : undefined;
   const maximumDate = parseDay(maximumDay);
@@ -27,89 +38,112 @@ export function ReadingDateField({ label, value, minimumDay, maximumDay, disable
     if (day !== value) onChange(day);
   }
 
-  function renderControl() {
-    // The picker renders nothing on web
-    if (Platform.OS === 'web') {
-      return <Text style={styles.value}>{value ? formatDay(value) : 'Non renseignée'}</Text>;
-    }
+  const calendar = (
+    <SymbolView
+      name={{ ios: 'calendar', android: 'calendar_today', web: 'calendar_today' }}
+      size={18}
+      tintColor={Palette.ink}
+    />
+  );
 
-    // iOS draws its own compact button that opens a calendar, but it cannot show an empty date
-    if (Platform.OS === 'ios' && value) {
-      return (
-        <DateTimePicker
-          value={parseDay(value)}
-          mode="date"
-          display="compact"
-          locale="fr_FR"
-          accentColor={C.primary}
-          minimumDate={minimumDate}
-          maximumDate={maximumDate}
-          disabled={disabled}
-          onValueChange={(_, date) => select(date)}
-        />
-      );
-    }
-
+  // iOS draws its own compact button that opens a calendar, but it cannot show an empty date
+  if (Platform.OS === 'ios' && value) {
     return (
-      <Pressable
-        onPress={() => (Platform.OS === 'ios' ? onChange(maximumDay) : setIsDialogOpen(true))}
-        disabled={disabled}
-        accessibilityRole="button"
-        accessibilityLabel={value ? `${label} ${formatDay(value)}, modifier` : `${label}, ajouter une date`}
-        style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
-        <Text style={styles.buttonText}>{value ? formatDay(value) : 'Ajouter'}</Text>
-      </Pressable>
+      <View style={styles.card}>
+        <View style={styles.text}>
+          <Text style={styles.caps}>{label}</Text>
+          <DateTimePicker
+            value={parseDay(value)}
+            mode="date"
+            display="compact"
+            locale="fr_FR"
+            accentColor={Palette.ink}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
+            disabled={disabled}
+            onValueChange={(_, date) => select(date)}
+          />
+        </View>
+        {calendar}
+      </View>
     );
   }
 
+  // The picker renders nothing on web, so the date is read only there
+  const editable = Platform.OS !== 'web' && !disabled;
+
   return (
-    <View style={styles.row}>
-      <Text style={styles.label}>{label}</Text>
-      {renderControl()}
+    <>
+      <Pressable
+        onPress={() => (Platform.OS === 'ios' ? onChange(maximumDay) : setIsDialogOpen(true))}
+        disabled={!editable}
+        accessibilityRole="button"
+        accessibilityLabel={value ? `${label} ${formatDay(value)}, modifier` : `${label}, ajouter une date`}
+        style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+        <View style={styles.text}>
+          <Text style={styles.caps}>{label}</Text>
+          <Text style={value ? styles.value : styles.empty}>{value ? formatDay(value) : emptyLabel}</Text>
+        </View>
+        {calendar}
+      </Pressable>
       {/* Android shows a dialog as soon as the picker mounts, so it only exists while open */}
       {isDialogOpen && (
         <DateTimePicker
           value={value ? parseDay(value) : maximumDate}
           mode="date"
           presentation="dialog"
-          accentColor={C.primary}
+          accentColor={Palette.ink}
           minimumDate={minimumDate}
           maximumDate={maximumDate}
           onValueChange={(_, date) => select(date)}
           onDismiss={() => setIsDialogOpen(false)}
         />
       )}
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
+  card: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    minHeight: 48,
+    minHeight: 56,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 6,
+    backgroundColor: Palette.paperRaised,
+    borderWidth: 1,
+    borderColor: Palette.line,
   },
-  label: {
-    color: C.text,
-    fontSize: 16,
+  text: {
+    flex: 1,
+    alignItems: 'flex-start',
+    gap: 2,
+  },
+  caps: {
+    color: Palette.inkTertiary,
+    fontFamily: Fonts.display,
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: '500',
+    letterSpacing: 0.88,
+    textTransform: 'uppercase',
   },
   value: {
-    color: C.textSecondary,
-    fontSize: 16,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+    letterSpacing: -0.07,
   },
-  button: {
-    minHeight: 36,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    backgroundColor: C.coverPlaceholder,
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: C.primary,
-    fontSize: 16,
-    fontWeight: '600',
+  empty: {
+    color: Palette.inkTertiary,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
   },
   pressed: {
     opacity: 0.7,

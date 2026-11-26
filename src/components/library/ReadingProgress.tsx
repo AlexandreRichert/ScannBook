@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { SymbolView } from 'expo-symbols';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { StatusButton } from '@/components/book/BookStatus';
 import { ProgressBar } from '@/components/library/ProgressBar';
-import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Fonts, Palette } from '@/constants/theme';
 import { parseCurrentPage, progressRatio } from '@/lib/ReadingProgress';
+
+// Lets a few taps on + or - add up before the page is saved
+const STEP_SAVE_DELAY = 600;
 
 type ReadingProgressProps = {
   currentPage: number | null;
@@ -15,22 +20,38 @@ type ReadingProgressProps = {
   onFinish: () => void;
 };
 
-/** Current page of a book being read, its progress bar, and a way to mark it read on the last page. */
+/** Current page of a book being read with steppers, its progress bar, and a way to mark it read on the last page. */
 export function ReadingProgress({ currentPage, pageCount, disabled = false, onSave, onFinish }: ReadingProgressProps) {
   const saved = currentPage === null ? '' : String(currentPage);
   const [text, setText] = useState(saved);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const stepTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (stepTimer.current) clearTimeout(stepTimer.current);
+    },
+    [],
+  );
 
   if (pageCount === null) {
-    return <Text style={styles.hint}>Le nombre de pages de ce livre est inconnu, la progression n’est pas disponible.</Text>;
+    return (
+      <View style={styles.card}>
+        <Text style={styles.hint}>Le nombre de pages de ce livre est inconnu, la progression n’est pas disponible.</Text>
+      </View>
+    );
   }
   const total = pageCount;
   const isDirty = text.trim() !== saved;
+  const typed = Number(text);
+  const shownPage = /^\d+$/.test(text.trim()) && typed <= total ? typed : (currentPage ?? 0);
+  const percent = Math.round(progressRatio(shownPage, total) * 100);
 
-  async function save() {
-    if (!isDirty || isSaving) return;
-    const parsed = parseCurrentPage(text, total);
+  async function save(value: string) {
+    if (value.trim() === saved || isSaving) return;
+    const parsed = parseCurrentPage(value, total);
     if ('error' in parsed) {
       setError(parsed.error);
       return;
@@ -43,32 +64,50 @@ export function ReadingProgress({ currentPage, pageCount, disabled = false, onSa
     setIsSaving(false);
   }
 
+  function step(delta: number) {
+    const next = Math.min(Math.max(shownPage + delta, 0), total);
+    setText(String(next));
+    setError(null);
+    if (stepTimer.current) clearTimeout(stepTimer.current);
+    stepTimer.current = setTimeout(() => save(String(next)), STEP_SAVE_DELAY);
+  }
+
+  const locked = disabled || isSaving;
+
   return (
     <View style={styles.card}>
       <View style={styles.row}>
-        <Text style={styles.label}>Page actuelle</Text>
-        <View style={styles.pages}>
+        <View style={styles.stepper}>
+          <StepButton icon="minus" label="Page précédente" onPress={() => step(-1)} disabled={locked || shownPage <= 0} />
           <TextInput
             value={text}
             onChangeText={setText}
+            onFocus={() => setIsEditing(true)}
             // The number pad has no return key on iOS, so leaving the field saves too
-            onBlur={save}
-            onSubmitEditing={save}
+            onBlur={() => {
+              setIsEditing(false);
+              save(text);
+            }}
+            onSubmitEditing={() => save(text)}
             keyboardType="number-pad"
             maxLength={5}
             selectTextOnFocus
-            editable={!disabled && !isSaving}
+            editable={!locked}
             placeholder="0"
-            placeholderTextColor={C.textMuted}
+            placeholderTextColor={Palette.inkTertiary}
             accessibilityLabel={`Page actuelle, sur ${total}`}
             style={styles.input}
           />
-          <Text style={styles.total}>/ {total}</Text>
+          <StepButton icon="plus" label="Page suivante" onPress={() => step(1)} disabled={locked || shownPage >= total} />
+        </View>
+        <View style={styles.total}>
+          <Text style={styles.percent}>{percent} %</Text>
+          <Text style={styles.pages}>sur {total} pages</Text>
         </View>
       </View>
-      <ProgressBar ratio={progressRatio(currentPage, total)} />
-      {isDirty && (
-        <StatusButton label={isSaving ? 'Enregistrement…' : 'Enregistrer'} variant="secondary" onPress={save} />
+      <ProgressBar ratio={progressRatio(shownPage, total)} />
+      {isEditing && isDirty && (
+        <StatusButton label={isSaving ? 'Enregistrement…' : 'Enregistrer'} variant="secondary" onPress={() => save(text)} />
       )}
       {error && (
         <Text style={styles.error} accessibilityRole="alert">
@@ -85,14 +124,41 @@ export function ReadingProgress({ currentPage, pageCount, disabled = false, onSa
   );
 }
 
+function StepButton({
+  icon,
+  label,
+  onPress,
+  disabled,
+}: {
+  icon: 'plus' | 'minus';
+  label: string;
+  onPress: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <PressableScale
+      haptic
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      hitSlop={4}
+      style={[styles.stepButton, disabled && styles.dimmed]}>
+      <SymbolView name={{ ios: icon, android: icon === 'plus' ? 'add' : 'remove', web: icon === 'plus' ? 'add' : 'remove' }} size={20} tintColor={Palette.ink} />
+    </PressableScale>
+  );
+}
+
 const styles = StyleSheet.create({
   card: {
     gap: 12,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: C.surface,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 6,
+    backgroundColor: Palette.paperRaised,
     borderWidth: 1,
-    borderColor: C.border,
+    borderColor: Palette.line,
   },
   row: {
     flexDirection: 'row',
@@ -100,36 +166,63 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
   },
-  label: {
-    color: C.text,
-    fontSize: 16,
-  },
-  pages: {
+  stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
-  input: {
-    minWidth: 64,
-    minHeight: 40,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+  stepButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Palette.paper,
     borderWidth: 1,
-    borderColor: C.border,
-    color: C.text,
-    fontSize: 16,
-    textAlign: 'right',
+    borderColor: Palette.lineStrong,
+  },
+  dimmed: {
+    opacity: 0.4,
+  },
+  // A fixed width keeps the steppers and the total in place while typing (web inputs size to their content)
+  input: {
+    width: 88,
+    paddingVertical: 0,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: '700',
+    letterSpacing: -1.05,
+    textAlign: 'center',
   },
   total: {
-    color: C.textSecondary,
+    alignItems: 'flex-end',
+    gap: 2,
+  },
+  percent: {
+    color: Palette.ink,
+    fontFamily: Fonts.display,
     fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '700',
+    letterSpacing: -0.16,
+  },
+  pages: {
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
   },
   hint: {
-    color: C.textSecondary,
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
     fontSize: 15,
+    lineHeight: 22,
   },
   error: {
-    color: C.error,
+    color: Palette.danger,
+    fontFamily: Fonts.body,
     fontSize: 15,
   },
   finished: {
@@ -137,8 +230,9 @@ const styles = StyleSheet.create({
     paddingTop: 4,
   },
   finishedText: {
-    color: C.text,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
