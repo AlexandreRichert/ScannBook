@@ -6,9 +6,10 @@ import {
     libraryErrorMessage,
     moveToShelf,
     removeFromLibrary,
+    updateReadingDates,
     type LibraryEntry,
 } from '@/data/Library';
-import type { Shelf } from '@/lib/Shelves';
+import type { ReadingDates, Shelf } from '@/lib/Shelves';
 import type { BookInfo } from '@/types/Book';
 
 export type LibraryEntryState =
@@ -80,5 +81,20 @@ export function useLibraryEntry(isbn13: string) {
     }
   }, [state]);
 
-  return { state, reload, add, move, remove };
+    /** Resolves to a French error message, or null on success. */
+  const setDates = useCallback(
+    async (dates: ReadingDates) => {
+      if (state.status !== 'present') return null;
+      try {
+        const entry = await updateReadingDates(state.entry.id, dates);
+        setState({ status: 'present', entry });
+        return null;
+      } catch (error) {
+        return libraryErrorMessage(error);
+      }
+    },
+    [state],
+  );
+
+  return { state, reload, add, move, remove, setDates };
 }

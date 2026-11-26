@@ -23,9 +23,19 @@ export type ReadingDates = { started_at: string | null; finished_at: string | nu
 const NO_DATES: ReadingDates = { started_at: null, finished_at: null };
 
 // Local calendar day: toISOString() is UTC and would give yesterday's date late in the evening in France
-export function localToday(now = new Date()): string {
+export function toDay(date: Date): string {
   const pad = (value: number) => String(value).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+export function localToday(): string {
+  return toDay(new Date());
+}
+
+/** `2026-11-26` → that day at local midnight, for date pickers. */
+export function parseDay(day: string): Date {
+  const [year, month, date] = day.split('-').map(Number);
+  return new Date(year, month - 1, date);
 }
 
 /** `2026-11-26` → `26/11/2026`. */
