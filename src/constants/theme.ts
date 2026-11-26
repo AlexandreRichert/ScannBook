@@ -1,67 +1,72 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
- */
-
 import '@/global.css';
 
+import { DMSans_400Regular } from '@expo-google-fonts/dm-sans/400Regular';
+import { DMSans_500Medium } from '@expo-google-fonts/dm-sans/500Medium';
+import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
+import { SpaceGrotesk_500Medium } from '@expo-google-fonts/space-grotesk/500Medium';
+import { SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk/700Bold';
+import type { FontFamilyDefinition } from 'expo-font';
 import { Platform } from 'react-native';
 
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-    danger: '#C62828',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-    danger: '#FF8A80',
-  },
+import type { Shelf } from '@/lib/Shelves';
+
+/** Variables of the Figma « Maquettes v2 » file. */
+export const Palette = {
+  paper: '#F6F3EE',
+  paperRaised: '#FFFFFF',
+  paperSunken: '#E9E4DB',
+  ink: '#141414',
+  inkSecondary: '#5C5A56',
+  // Darker than the Figma #726E68, which falls under 4.5:1 on the sunken and wall surfaces
+  inkTertiary: '#67635D',
+  inkDisabled: '#9A968F',
+  inkInverse: '#FFFFFF',
+  line: '#DDD7CC',
+  /** Edge of fields and outlined buttons: 3:1 against paper, as WCAG asks for control boundaries. */
+  lineStrong: '#8F8A82',
+  accent: '#EE5B3A',
+  accentStrong: '#C03D1D',
+  danger: '#B3261E',
+  wood: '#2A2623',
+  woodWall: '#EAE3D7',
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+/** Dot color of each shelf on the pile chips (Figma « pile/* » variables). */
+export const ShelfColors: Record<Shelf, string> = {
+  wishlist: '#E79AB3',
+  to_read: '#7FA8E8',
+  reading: '#E2B93B',
+  read: '#74BE97',
+  abandoned: '#B7B1A8',
+};
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+export const Fonts = {
+  display: 'SpaceGrotesk',
+  body: 'DMSans',
+  mono: Platform.select({ ios: 'ui-monospace', web: 'var(--font-mono)', default: 'monospace' }),
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+// One family per typeface so styles keep picking the face with fontWeight (SDK 58 multi-face loading)
+export const AppFonts: FontFamilyDefinition[] = [
+  {
+    fontFamily: Fonts.display,
+    fontDefinitions: [
+      { path: SpaceGrotesk_500Medium, weight: 500, style: 'normal' },
+      { path: SpaceGrotesk_700Bold, weight: 700, style: 'normal' },
+    ],
+  },
+  {
+    fontFamily: Fonts.body,
+    fontDefinitions: [
+      { path: DMSans_400Regular, weight: 400, style: 'normal' },
+      { path: DMSans_500Medium, weight: 500, style: 'normal' },
+      { path: DMSans_700Bold, weight: 700, style: 'normal' },
+    ],
+  },
+];
+
+export const BottomTabBar = { height: 64, gap: 16 } as const;
+
+// Room the floating tab bar takes above the safe area, for scroll content to clear it
+export const BottomTabInset = BottomTabBar.height + BottomTabBar.gap;
 export const MaxContentWidth = 800;
