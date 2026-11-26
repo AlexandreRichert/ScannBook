@@ -58,8 +58,10 @@ export default function BookScreen() {
 function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => void }) {
   const router = useRouter();
 
-  // Temporary targets until the scanner (US-03) and manual entry (US-01) exist.
-  const scanAgain = () => (router.canGoBack() ? router.back() : router.replace('/'));
+  // `navigate` goes back to the tabs already in the stack and switches to the
+  // scanner, whether the book was opened from it, from the ISBN tab or by a link.
+  const scanAgain = () => router.navigate('/scan');
+  // Until the manual ISBN entry modal exists, the ISBN test tab stands in. It is a full screen, so it replaces the book screen in the stack.
   const enterIsbn = () => router.navigate('/isbn-test');
 
   switch (state.status) {
