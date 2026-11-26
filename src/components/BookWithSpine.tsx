@@ -1,21 +1,22 @@
 import { StyleSheet, View } from 'react-native';
 
 import { BookCover } from '@/components/BookCover';
-import { BookScreenColors as C } from '@/constants/BookScreenColors';
 
 const SPINE_WIDTH = 12;
 /** The cover slightly overlaps the spine. */
 const SPINE_OVERLAP = 2;
 
 type BookWithSpineProps = {
+  isbn13: string;
   title: string;
+  authors?: string[];
   coverUrl?: string;
   /** Width of the cover, without the spine. */
   width: number;
 };
 
 /** A cover drawn as a physical book: same spine for every book (Figma frame 06). */
-export function BookWithSpine({ title, coverUrl, width }: BookWithSpineProps) {
+export function BookWithSpine({ isbn13, title, authors, coverUrl, width }: BookWithSpineProps) {
   const height = width * 1.5;
 
   return (
@@ -26,11 +27,12 @@ export function BookWithSpine({ title, coverUrl, width }: BookWithSpineProps) {
       </View>
       <View style={[styles.cover, { left: SPINE_WIDTH - SPINE_OVERLAP }]}>
         <BookCover
-          key={coverUrl ?? title}
+          key={coverUrl ?? isbn13}
+          isbn13={isbn13}
           title={title}
+          authors={authors}
           coverUrl={coverUrl}
           width={width}
-          placeholderColors={{ background: C.coverPlaceholder, text: C.text }}
         />
         <View style={styles.hinge} />
       </View>

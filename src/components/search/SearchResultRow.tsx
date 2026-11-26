@@ -27,10 +27,11 @@ export function SearchResultRow({ book, shelf, onPress }: SearchResultRowProps) 
       <View style={styles.cover}>
         <BookCover
           key={book.isbn13}
+          isbn13={book.isbn13}
           title={book.title}
+          authors={book.authors}
           coverUrl={book.coverUrl}
           width={44}
-          placeholderColors={{ background: C.coverPlaceholder, text: C.text }}
         />
       </View>
       <View style={styles.text}>

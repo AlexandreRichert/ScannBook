@@ -36,7 +36,14 @@ export function BestResultCard({ book, shelf, onPress }: BestResultCardProps) {
       )}
       style={({ pressed }) => [styles.card, shelf && styles.owned, pressed && styles.pressed]}>
       <View style={styles.tilt}>
-        <BookWithSpine key={book.isbn13} title={book.title} coverUrl={book.coverUrl} width={88} />
+        <BookWithSpine
+          key={book.isbn13}
+          isbn13={book.isbn13}
+          title={book.title}
+          authors={book.authors}
+          coverUrl={book.coverUrl}
+          width={88}
+        />
       </View>
       <View style={styles.text}>
         <Text style={styles.label}>Meilleur résultat</Text>
