@@ -56,6 +56,11 @@ export async function moveToShelf(entry: LibraryEntry, shelf: Shelf): Promise<Li
   return data;
 }
 
+export async function removeFromLibrary(id: string): Promise<void> {
+  const { error } = await supabase.from('books').delete().eq('id', id);
+  if (error) throw error;
+}
+
 export function libraryErrorMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
   if (code === DUPLICATE_BOOK) return 'Ce livre est déjà dans ta bibliothèque.';
