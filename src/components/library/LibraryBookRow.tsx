@@ -3,8 +3,10 @@ import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BookCover } from '@/components/BookCover';
+import { ProgressBar } from '@/components/library/ProgressBar';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import type { LibraryBook } from '@/data/Library';
+import { progressRatio } from '@/lib/ReadingProgress';
 
 export function LibraryBookRow({ book }: { book: LibraryBook }) {
   const router = useRouter();
@@ -30,6 +32,14 @@ export function LibraryBookRow({ book }: { book: LibraryBook }) {
         <Text style={styles.authors} numberOfLines={1}>
           {authors}
         </Text>
+        {book.status === 'reading' && book.page_count !== null && (
+          <View style={styles.progress}>
+            <ProgressBar ratio={progressRatio(book.current_page, book.page_count)} />
+            <Text style={styles.pages}>
+              p. {book.current_page ?? 0} / {book.page_count}
+            </Text>
+          </View>
+        )}
       </View>
       <SymbolView
         name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
@@ -63,6 +73,14 @@ const styles = StyleSheet.create({
   authors: {
     color: C.textSecondary,
     fontSize: 14,
+  },
+  progress: {
+    gap: 4,
+    paddingTop: 4,
+  },
+  pages: {
+    color: C.textTertiary,
+    fontSize: 13,
   },
   pressed: {
     opacity: 0.7,

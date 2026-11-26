@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ReadingDateField } from '@/components/library/ReadingDateField';
+import { ReadingProgress } from '@/components/library/ReadingProgress';
 import { ShelfPicker } from '@/components/library/ShelfPicker';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import type { LibraryEntry } from '@/data/Library';
@@ -17,10 +18,12 @@ type ShelfCardProps = {
   onRemove: () => Promise<string | null>;
   /** Resolves to a French error message, or null on success. */
   onDatesChange: (dates: ReadingDates) => Promise<string | null>;
+  /** Resolves to a French error message, or null on success. */
+  onPageChange: (page: number) => Promise<string | null>;
 };
 
-/** A book already in the library: its shelf, its reading dates, the picker to move it, and a way to remove it. */
-export function ShelfCard({ entry, onMove, onRemove, onDatesChange }: ShelfCardProps) {
+/** A book already in the library: its shelf, progress and reading dates, the picker to move it, and a way to remove it. */
+export function ShelfCard({ entry, onMove, onRemove, onDatesChange, onPageChange }: ShelfCardProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -70,6 +73,21 @@ export function ShelfCard({ entry, onMove, onRemove, onDatesChange }: ShelfCardP
           Dans ta pile <Text style={styles.strong}>{SHELF_LABELS[entry.status]}</Text>
         </Text>
       </View>
+
+      {entry.status === 'reading' && (
+        <>
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            Progression
+          </Text>
+          <ReadingProgress
+            currentPage={entry.current_page}
+            pageCount={entry.page_count}
+            disabled={isSaving}
+            onSave={onPageChange}
+            onFinish={() => handleMove('read')}
+          />
+        </>
+      )}
 
       {hasStart && (
         <>

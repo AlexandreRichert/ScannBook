@@ -6,6 +6,7 @@ import {
     libraryErrorMessage,
     moveToShelf,
     removeFromLibrary,
+    updateCurrentPage,
     updateReadingDates,
     type LibraryEntry,
 } from '@/data/Library';
@@ -96,5 +97,20 @@ export function useLibraryEntry(isbn13: string) {
     [state],
   );
 
-  return { state, reload, add, move, remove, setDates };
+  /** Resolves to a French error message, or null on success. */
+  const setCurrentPage = useCallback(
+    async (page: number) => {
+      if (state.status !== 'present') return null;
+      try {
+        const entry = await updateCurrentPage(state.entry.id, page);
+        setState({ status: 'present', entry });
+        return null;
+      } catch (error) {
+        return libraryErrorMessage(error);
+      }
+    },
+    [state],
+  );
+
+  return { state, reload, add, move, remove, setDates, setCurrentPage };
 }

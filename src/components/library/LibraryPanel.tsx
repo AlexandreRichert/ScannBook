@@ -11,7 +11,7 @@ import type { BookInfo } from '@/types/Book';
 
 /** Bottom of the book screen: add the book to a shelf, or show and change the shelf it is on. */
 export function LibraryPanel({ book }: { book: BookInfo }) {
-  const { state, reload, add, move, remove, setDates } = useLibraryEntry(book.isbn13);
+  const { state, reload, add, move, remove, setDates, setCurrentPage } = useLibraryEntry(book.isbn13);
   const [shelf, setShelf] = useState<Shelf>('to_read');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -37,7 +37,15 @@ export function LibraryPanel({ book }: { book: BookInfo }) {
   }
 
   if (state.status === 'present') {
-        return <ShelfCard entry={state.entry} onMove={move} onRemove={remove} onDatesChange={setDates} />;
+    return (
+      <ShelfCard
+        entry={state.entry}
+        onMove={move}
+        onRemove={remove}
+        onDatesChange={setDates}
+        onPageChange={setCurrentPage}
+      />
+    );
   }
 
   return (
