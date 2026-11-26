@@ -28,7 +28,15 @@ export default function LibraryScreen() {
           Ma bibliothèque
         </Text>
         {state.status === 'success' && (
-          <ShelfPicker value={shelf} onChange={setShelf} counts={countByShelf(state.books)} />
+          <View style={styles.filters}>
+            <ShelfPicker
+              value={shelf}
+              onChange={setShelf}
+              counts={countByShelf(state.books)}
+              scrollable
+              contentContainerStyle={styles.filtersContent}
+            />
+          </View>
         )}
       </View>
 
@@ -88,6 +96,13 @@ const styles = StyleSheet.create({
     color: C.text,
     fontSize: 28,
     fontWeight: '700',
+  },
+    // Cancels the header padding so the row scrolls edge to edge, then puts it back inside the row
+  filters: {
+    marginHorizontal: -20,
+  },
+  filtersContent: {
+    paddingHorizontal: 20,
   },
   fill: {
     flex: 1,
