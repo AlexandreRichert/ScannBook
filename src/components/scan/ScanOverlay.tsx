@@ -1,4 +1,4 @@
-import { SymbolView } from 'expo-symbols';
+import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,6 +19,7 @@ type ScanOverlayProps = {
   /** The last code read was an EAN-13 but not an ISBN. */
   rejected: boolean;
   onManualEntry: () => void;
+  onSearch: () => void;
 };
 
 /** Everything drawn over the camera feed (Figma frame 03). */
@@ -28,6 +29,7 @@ export function ScanOverlay({
   locked,
   rejected,
   onManualEntry,
+  onSearch,
 }: ScanOverlayProps) {
   const insets = useSafeAreaInsets();
   const cornerColor = locked ? C.scanLine : C.onCamera;
@@ -35,7 +37,7 @@ export function ScanOverlay({
   return (
     <View style={StyleSheet.absoluteFill}>
       {/* Top veil with the title and the torch */}
-      <View style={[styles.veil, styles.top, { paddingTop: insets.top + 23 }]}>
+      <View style={[styles.band, styles.top, { paddingTop: insets.top + 23 }]}>
         <View style={styles.header}>
           <Text style={styles.screenTitle} accessibilityRole="header">
             Scanner un livre
@@ -73,9 +75,9 @@ export function ScanOverlay({
         <View style={styles.veil} />
       </View>
 
-      {/* Bottom veil with the instructions, the result and the manual entry */}
+      {/* Bottom veil with the instructions, the result and the other ways to find a book */}
       <View
-        style={[styles.veil, styles.bottom, { paddingBottom: insets.bottom + BottomTabInset + 24 }]}>
+        style={[styles.band, styles.bottom, { paddingBottom: insets.bottom + BottomTabInset + 24 }]}>
         {rejected ? (
           <View style={styles.rejected} accessibilityLiveRegion="polite">
             <Text style={styles.rejectedText}>Ce code-barres n’est pas un ISBN</Text>
@@ -87,25 +89,65 @@ export function ScanOverlay({
           </View>
         )}
 
-        <Pressable
-          onPress={onManualEntry}
-          accessibilityRole="button"
-          style={({ pressed }) => [styles.manualEntry, pressed && styles.pressed]}>
-          <SymbolView
-            name={{ ios: 'keyboard', android: 'keyboard', web: 'keyboard' }}
-            size={18}
-            tintColor={C.onCamera}
+        <View style={styles.actions}>
+          <OverlayButton
+            icon={{ ios: 'keyboard', android: 'keyboard', web: 'keyboard' }}
+            label="Saisir l’ISBN à la main"
+            hint="Ouvre la saisie de l’ISBN au clavier"
+            disabled={locked}
+            onPress={onManualEntry}
           />
-          <Text style={styles.manualEntryLabel}>Saisir l’ISBN à la main</Text>
-        </Pressable>
+          <OverlayButton
+            icon={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+            label="Rechercher un livre"
+            hint="Ouvre la recherche par titre ou auteur"
+            disabled={locked}
+            onPress={onSearch}
+          />
+        </View>
       </View>
     </View>
+  );
+}
+
+type OverlayButtonProps = {
+  icon: SymbolViewProps['name'];
+  label: string;
+  /** What happens on press, read after the label by screen readers. */
+  hint: string;
+  /** While a scanned book is opening. */
+  disabled: boolean;
+  onPress: () => void;
+};
+
+/** Dark pill over the camera feed. The icon is decorative: only the label is read. */
+function OverlayButton({ icon, label, hint, disabled, onPress }: OverlayButtonProps) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      accessibilityState={{ disabled }}
+      style={({ pressed }) => [styles.overlayButton, (pressed || disabled) && styles.pressed]}>
+      <SymbolView name={icon} size={18} tintColor={C.onCamera} />
+      <Text style={styles.overlayButtonLabel}>{label}</Text>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   veil: {
     flex: 1,
+    backgroundColor: C.veil,
+  },
+  // Top and bottom veils: never smaller than their content, then they share the space left.
+  // The buttons can't slide under the tab bar, whatever the screen or text size.
+  band: {
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: 'auto',
     backgroundColor: C.veil,
   },
   top: {
@@ -215,8 +257,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  manualEntry: {
+  // `auto` pushes the buttons down; the padding keeps them off the text when space runs short.
+  actions: {
     marginTop: 'auto',
+    paddingTop: 24,
+    gap: 16,
+  },
+  overlayButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -224,9 +271,11 @@ const styles = StyleSheet.create({
     width: 240,
     height: 48,
     borderRadius: 24,
-    backgroundColor: C.onCameraControl,
+    backgroundColor: C.onCameraButton,
+    borderWidth: 1,
+    borderColor: C.onCameraButtonBorder,
   },
-  manualEntryLabel: {
+  overlayButtonLabel: {
     color: C.onCamera,
     fontSize: 15,
     lineHeight: 18,

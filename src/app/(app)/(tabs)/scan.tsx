@@ -1,11 +1,12 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, type Href } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Linking, Platform, StyleSheet, View } from 'react-native';
 
 import { ScanOverlay } from '@/components/scan/ScanOverlay';
 import { ScanUnavailable } from '@/components/scan/ScanUnavailable';
+import { useNavigateOnce } from '@/hooks/useNavigateOnce';
 import { parseIsbn } from '@/lib/Isbn';
 
 /** How long « Ce code-barres n'est pas un ISBN » stays after the code leaves the frame. */
@@ -16,26 +17,34 @@ const REJECTED_MESSAGE_MS = 3000;
  * when an ISBN-10 is printed next to it.
  */
 export default function ScanScreen() {
-  const router = useRouter();
+  // Shared by the scan and both buttons: only the first one opens a screen.
+  const navigate = useNavigateOnce();
   // Manual ISBN entry, shown as a modal over the scanner.
-  const openManualEntry = () => router.push('/isbn');
+  const openManualEntry = () => navigate('/isbn');
+  const openSearch = () => navigate('/search');
 
   if (Platform.OS === 'web') {
     return (
       <ScanUnavailable
         icon={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }}
         title="Scan indisponible sur le web"
-        body="Le scan de code-barres se fait depuis l’application mobile. Ici, saisis l’ISBN du livre."
+        body="Le scan de code-barres se fait depuis l’application mobile. Ici, saisis l’ISBN du livre ou cherche-le par titre ou auteur."
         onManualEntry={openManualEntry}
+        onSearch={openSearch}
       />
     );
   }
 
-  return <CameraScanner onManualEntry={openManualEntry} />;
+  return <CameraScanner navigate={navigate} onManualEntry={openManualEntry} onSearch={openSearch} />;
 }
 
-function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
-  const router = useRouter();
+type CameraScannerProps = {
+  navigate: (href: Href) => void;
+  onManualEntry: () => void;
+  onSearch: () => void;
+};
+
+function CameraScanner({ navigate, onManualEntry, onSearch }: CameraScannerProps) {
   const [permission, requestPermission, getPermission] = useCameraPermissions();
   const [focused, setFocused] = useState(false);
   const [torch, setTorch] = useState(false);
@@ -89,7 +98,7 @@ function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
       if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
       setRejected(false);
       setLocked(true);
-      router.push(`/book/${parsed.isbn13}`);
+      navigate(`/book/${parsed.isbn13}`);
       return;
     }
 
@@ -120,6 +129,7 @@ function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
           body="ScannBook utilise la caméra pour lire le code-barres de tes livres et les retrouver sans rien saisir."
           primary={{ label: 'Autoriser la caméra', onPress: () => void requestPermission() }}
           onManualEntry={onManualEntry}
+          onSearch={onSearch}
         />
       );
     }
@@ -132,6 +142,7 @@ function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
         body="ScannBook a besoin de la caméra pour lire le code-barres de tes livres. Autorise-la dans les réglages du téléphone."
         primary={{ label: 'Ouvrir les réglages', onPress: () => void Linking.openSettings() }}
         onManualEntry={onManualEntry}
+        onSearch={onSearch}
       />
     );
   }
@@ -154,6 +165,7 @@ function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
         locked={locked}
         rejected={rejected}
         onManualEntry={onManualEntry}
+        onSearch={onSearch}
       />
     </View>
   );

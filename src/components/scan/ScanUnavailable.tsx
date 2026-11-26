@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BottomTabInset } from '@/constants/theme';
@@ -13,13 +13,14 @@ type ScanUnavailableProps = {
   /** Main action, e.g. opening the settings. Omitted when nothing can be done. */
   primary?: { label: string; onPress: () => void };
   onManualEntry: () => void;
+  onSearch: () => void;
 };
 
 /**
  * Shown instead of the camera when it cannot be used: permission not asked
  * yet, permission denied (Figma frame 04) or web.
  */
-export function ScanUnavailable({ icon, title, body, primary, onManualEntry }: ScanUnavailableProps) {
+export function ScanUnavailable({ icon, title, body, primary, onManualEntry, onSearch }: ScanUnavailableProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -33,7 +34,8 @@ export function ScanUnavailable({ icon, title, body, primary, onManualEntry }: S
         Scanner un livre
       </Text>
 
-      <View style={styles.content}>
+      {/* Centered when it fits, scrollable when it doesn't (small screen, large text). */}
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.illustration}>
           <SymbolView name={icon} size={36} tintColor={C.primary} />
         </View>
@@ -41,34 +43,55 @@ export function ScanUnavailable({ icon, title, body, primary, onManualEntry }: S
         <Text style={styles.body}>{body}</Text>
 
         <View style={styles.actions}>
-          {primary && (
-            <Pressable
-              onPress={primary.onPress}
-              accessibilityRole="button"
-              style={({ pressed }) => [styles.button, styles.primary, pressed && styles.pressed]}>
-              <Text style={[styles.buttonLabel, { color: C.onPrimary }]}>{primary.label}</Text>
-            </Pressable>
-          )}
-          <Pressable
+          {primary && <ActionButton label={primary.label} onPress={primary.onPress} />}
+          <ActionButton
+            icon={{ ios: 'keyboard', android: 'keyboard', web: 'keyboard' }}
+            label="Saisir l’ISBN à la main"
+            hint="Ouvre la saisie de l’ISBN au clavier"
+            variant={primary ? 'secondary' : 'primary'}
             onPress={onManualEntry}
-            accessibilityRole="button"
-            style={({ pressed }) => [
-              styles.button,
-              primary ? styles.secondary : styles.primary,
-              pressed && styles.pressed,
-            ]}>
-            <SymbolView
-              name={{ ios: 'keyboard', android: 'keyboard', web: 'keyboard' }}
-              size={18}
-              tintColor={primary ? C.primary : C.onPrimary}
-            />
-            <Text style={[styles.buttonLabel, { color: primary ? C.primary : C.onPrimary }]}>
-              Saisir l’ISBN à la main
-            </Text>
-          </Pressable>
+          />
+          <ActionButton
+            icon={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+            label="Rechercher un livre"
+            hint="Ouvre la recherche par titre ou auteur"
+            variant="secondary"
+            onPress={onSearch}
+          />
         </View>
-      </View>
+      </ScrollView>
     </View>
+  );
+}
+
+type ActionButtonProps = {
+  icon?: SymbolViewProps['name'];
+  label: string;
+  /** What happens on press, read after the label by screen readers. */
+  hint?: string;
+  variant?: 'primary' | 'secondary';
+  onPress: () => void;
+};
+
+/** The icon is decorative: only the label is read. */
+function ActionButton({ icon, label, hint, variant = 'primary', onPress }: ActionButtonProps) {
+  const isPrimary = variant === 'primary';
+  const color = isPrimary ? C.onPrimary : C.primary;
+
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      style={({ pressed }) => [
+        styles.button,
+        isPrimary ? styles.primary : styles.secondary,
+        pressed && styles.pressed,
+      ]}>
+      {icon && <SymbolView name={icon} size={18} tintColor={color} />}
+      <Text style={[styles.buttonLabel, { color }]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -85,10 +108,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textAlign: 'center',
   },
-  content: {
+  scroll: {
     flex: 1,
+  },
+  content: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 16,
   },
   illustration: {
     width: 96,
