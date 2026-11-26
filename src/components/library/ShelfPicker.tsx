@@ -7,9 +7,11 @@ type ShelfPickerProps = {
   value: Shelf;
   onChange: (shelf: Shelf) => void;
   disabled?: boolean;
+    /** Shown next to each label, e.g. « À lire · 3 ». */
+  counts?: Record<Shelf, number>;
 };
 
-export function ShelfPicker({ value, onChange, disabled = false }: ShelfPickerProps) {
+export function ShelfPicker({ value, onChange, disabled = false, counts }: ShelfPickerProps) {
   return (
     <View style={styles.row} accessibilityRole="radiogroup">
       {SHELVES.map((shelf) => {
@@ -22,7 +24,9 @@ export function ShelfPicker({ value, onChange, disabled = false }: ShelfPickerPr
             accessibilityRole="radio"
             accessibilityState={{ checked: selected, disabled }}
             style={({ pressed }) => [styles.chip, selected && styles.selected, pressed && styles.pressed]}>
-            <Text style={[styles.label, selected && styles.selectedLabel]}>{SHELF_LABELS[shelf]}</Text>
+            <Text style={[styles.label, selected && styles.selectedLabel]}>
+              {counts ? `${SHELF_LABELS[shelf]} · ${counts[shelf]}` : SHELF_LABELS[shelf]}
+            </Text>
           </Pressable>
         );
       })}
