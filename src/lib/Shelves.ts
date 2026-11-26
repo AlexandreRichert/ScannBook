@@ -10,6 +10,14 @@ export const SHELF_LABELS: Record<Shelf, string> = {
   abandoned: 'Abandonné',
 };
 
+/** Number of items on each shelf, zero included. */
+export function countByShelf(items: readonly { status: Shelf }[]): Record<Shelf, number> {
+  const counts = { wishlist: 0, to_read: 0, reading: 0, read: 0, abandoned: 0 };
+  for (const item of items) counts[item.status] += 1;
+  return counts;
+}
+
+
 export type ReadingDates = { started_at: string | null; finished_at: string | null };
 
 const NO_DATES: ReadingDates = { started_at: null, finished_at: null };

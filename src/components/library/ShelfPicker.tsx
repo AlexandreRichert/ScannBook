@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { SHELF_LABELS, SHELVES, type Shelf } from '@/lib/Shelves';
@@ -7,25 +7,54 @@ type ShelfPickerProps = {
   value: Shelf;
   onChange: (shelf: Shelf) => void;
   disabled?: boolean;
+  /** Shown next to each label, e.g. « À lire · 3 ». */
+  counts?: Record<Shelf, number>;
+  /** One row that scrolls sideways instead of wrapping onto a second line. */
+  scrollable?: boolean;
+  /** Padding of the scrolling row, so chips can scroll to the screen edge. */
+  contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
-export function ShelfPicker({ value, onChange, disabled = false }: ShelfPickerProps) {
+export function ShelfPicker({
+  value,
+  onChange,
+  disabled = false,
+  counts,
+  scrollable = false,
+  contentContainerStyle,
+}: ShelfPickerProps) {
+  const chips = SHELVES.map((shelf) => {
+    const selected = shelf === value;
+    return (
+      <Pressable
+        key={shelf}
+        onPress={() => onChange(shelf)}
+        disabled={disabled}
+        accessibilityRole="radio"
+        accessibilityState={{ checked: selected, disabled }}
+        style={({ pressed }) => [styles.chip, selected && styles.selected, pressed && styles.pressed]}>
+        <Text style={[styles.label, selected && styles.selectedLabel]}>
+          {counts ? `${SHELF_LABELS[shelf]} · ${counts[shelf]}` : SHELF_LABELS[shelf]}
+        </Text>
+      </Pressable>
+    );
+  });
+
+  if (scrollable) {
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        accessibilityRole="radiogroup"
+        contentContainerStyle={[styles.scrollRow, contentContainerStyle]}>
+        {chips}
+      </ScrollView>
+    );
+  }
+
   return (
     <View style={styles.row} accessibilityRole="radiogroup">
-      {SHELVES.map((shelf) => {
-        const selected = shelf === value;
-        return (
-          <Pressable
-            key={shelf}
-            onPress={() => onChange(shelf)}
-            disabled={disabled}
-            accessibilityRole="radio"
-            accessibilityState={{ checked: selected, disabled }}
-            style={({ pressed }) => [styles.chip, selected && styles.selected, pressed && styles.pressed]}>
-            <Text style={[styles.label, selected && styles.selectedLabel]}>{SHELF_LABELS[shelf]}</Text>
-          </Pressable>
-        );
-      })}
+      {chips}
     </View>
   );
 }
@@ -34,6 +63,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    gap: 8,
+  },
+  scrollRow: {
     gap: 8,
   },
   chip: {

@@ -1,20 +1,23 @@
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { ShelfPicker } from '@/components/library/ShelfPicker';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import type { LibraryEntry } from '@/data/Library';
+import { confirmDestructive } from '@/lib/ConfirmDestructive';
 import { formatDay, SHELF_LABELS, type Shelf } from '@/lib/Shelves';
 
 type ShelfCardProps = {
   entry: LibraryEntry;
   /** Resolves to a French error message, or null on success. */
   onMove: (shelf: Shelf) => Promise<string | null>;
+  /** Resolves to a French error message, or null on success. */
+  onRemove: () => Promise<string | null>;
 };
 
-/** A book already in the library: its shelf, its reading dates, and the picker to move it. */
-export function ShelfCard({ entry, onMove }: ShelfCardProps) {
+/** A book already in the library: its shelf, its reading dates, the picker to move it, and a way to remove it. */
+export function ShelfCard({ entry, onMove, onRemove }: ShelfCardProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -23,6 +26,23 @@ export function ShelfCard({ entry, onMove }: ShelfCardProps) {
     setIsSaving(true);
     setError(await onMove(shelf));
     setIsSaving(false);
+  }
+
+  async function handleRemove() {
+    if (isSaving) return;
+    const confirmed = await confirmDestructive(
+      'Retirer ce livre ?',
+      'Il quittera ta bibliothèque, avec sa pile et ses dates de lecture.',
+      'Retirer',
+    );
+    if (!confirmed) return;
+    setIsSaving(true);
+    const message = await onRemove();
+    // On success the panel swaps this card for the add form, so there is no state left to update
+    if (message) {
+      setError(message);
+      setIsSaving(false);
+    }
   }
 
   const dates = [
@@ -55,6 +75,13 @@ export function ShelfCard({ entry, onMove }: ShelfCardProps) {
           {error}
         </Text>
       )}
+      <Pressable
+        onPress={handleRemove}
+        disabled={isSaving}
+        accessibilityRole="button"
+        style={({ pressed }) => [styles.remove, (pressed || isSaving) && styles.removePressed]}>
+        <Text style={styles.removeText}>Retirer de ma bibliothèque</Text>
+      </Pressable>
     </View>
   );
 }
@@ -97,5 +124,18 @@ const styles = StyleSheet.create({
   error: {
     color: C.error,
     fontSize: 15,
+  },
+  remove: {
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  removePressed: {
+    opacity: 0.5,
+  },
+  removeText: {
+    color: C.error,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

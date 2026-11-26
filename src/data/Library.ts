@@ -21,6 +21,26 @@ export async function fetchLibraryEntry(isbn13: string): Promise<LibraryEntry | 
   return data;
 }
 
+export type LibraryBook = {
+  id: string;
+  isbn13: string;
+  title: string;
+  authors: string[];
+  cover_url: string | null;
+  status: Shelf;
+};
+
+/** Every book of the current user, most recently added first. */
+export async function fetchLibrary(): Promise<LibraryBook[]> {
+  const { data, error } = await supabase
+    .from('books')
+    .select('id, isbn13, title, authors, cover_url, status')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+
 export async function addToLibrary(book: BookInfo, shelf: Shelf): Promise<LibraryEntry> {
   const { data, error } = await supabase
     .from('books')
@@ -54,6 +74,11 @@ export async function moveToShelf(entry: LibraryEntry, shelf: Shelf): Promise<Li
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function removeFromLibrary(id: string): Promise<void> {
+  const { error } = await supabase.from('books').delete().eq('id', id);
+  if (error) throw error;
 }
 
 export function libraryErrorMessage(error: unknown): string {

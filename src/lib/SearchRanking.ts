@@ -44,7 +44,12 @@ export function rankSearchResults(
   ];
 
   const seen = new Set<string>();
-  return ranked
-    .filter((book) => !seen.has(book.isbn13) && seen.add(book.isbn13))
-    .slice(0, limit);
+  const unique: BookInfo[] = [];
+  for (const book of ranked) {
+    if (unique.length >= limit) break;
+    if (seen.has(book.isbn13)) continue;
+    seen.add(book.isbn13);
+    unique.push(book);
+  }
+  return unique;
 }
