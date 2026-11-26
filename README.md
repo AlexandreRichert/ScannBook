@@ -40,6 +40,7 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | Book data            | Google Books API v1 (`fetch` + adapter)                          | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
 | Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)          | -                                           |
 | Password reset       | 6-digit email code, sent through custom SMTP (project Gmail)     | [0004](docs/adr/0004-password-reset-with-email-code.md) |
+| Reading dates        | Set automatically when a book changes shelf                      | [0005](docs/adr/0005-reading-dates-follow-the-shelf.md) |
 
 All recorded decisions are listed in [docs/adr/](docs/adr/).
 

@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { addToLibrary, fetchLibraryEntry, libraryErrorMessage, type LibraryEntry } from '@/data/Library';
+import {
+    addToLibrary,
+    fetchLibraryEntry,
+    libraryErrorMessage,
+    moveToShelf,
+    type LibraryEntry,
+} from '@/data/Library';
 import type { Shelf } from '@/lib/Shelves';
 import type { BookInfo } from '@/types/Book';
 
@@ -46,5 +52,20 @@ export function useLibraryEntry(isbn13: string) {
     }
   }, []);
 
-  return { state, reload, add };
+  /** Resolves to a French error message, or null on success. */
+  const move = useCallback(
+    async (shelf: Shelf) => {
+      if (state.status !== 'present') return null;
+      try {
+        const entry = await moveToShelf(state.entry, shelf);
+        setState({ status: 'present', entry });
+        return null;
+      } catch (error) {
+        return libraryErrorMessage(error);
+      }
+    },
+    [state],
+  );
+
+  return { state, reload, add, move };
 }
