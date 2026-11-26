@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BookWithSpine } from '@/components/BookWithSpine';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { ShelfTints } from '@/constants/theme';
 import { ShelfTag } from '@/components/search/ShelfTag';
 import { authorsLabel, joinDetails, publicationYear } from '@/lib/BookFormat';
 import { inLibraryLabel, type Shelf } from '@/lib/Shelves';
@@ -34,7 +35,7 @@ export function BestResultCard({ book, shelf, onPress }: BestResultCardProps) {
         details,
         shelf && inLibraryLabel(shelf),
       )}
-      style={({ pressed }) => [styles.card, shelf && styles.owned, pressed && styles.pressed]}>
+      style={({ pressed }) => [styles.card, shelf && [styles.owned, ShelfTints[shelf]], pressed && styles.pressed]}>
       <View style={styles.tilt}>
         <BookWithSpine
           key={book.isbn13}
@@ -118,8 +119,6 @@ const styles = StyleSheet.create({
   },
   owned: {
     borderWidth: 1,
-    borderColor: C.ownedBorder,
-    backgroundColor: C.owned,
   },
   tag: {
     marginTop: 4,

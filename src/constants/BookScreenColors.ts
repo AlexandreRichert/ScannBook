@@ -19,7 +19,4 @@ export const BookScreenColors = {
   /** Search best result card (« Maquettes v2 », frame 06). */
   highlight: Palette.paperSunken,
   accent: Palette.accentStrong,
-  /** Search result already in the library: background, with a `primary` border. */
-  owned: '#E4EEEA',
-  ownedBorder: '#B9CFC6',
 } as const;

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BookCover } from '@/components/BookCover';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { ShelfTints } from '@/constants/theme';
 import { ShelfTag } from '@/components/search/ShelfTag';
 import { authorsLabel, joinDetails, publicationYear } from '@/lib/BookFormat';
 import { inLibraryLabel, type Shelf } from '@/lib/Shelves';
@@ -23,7 +24,7 @@ export function SearchResultRow({ book, shelf, onPress }: SearchResultRowProps) 
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={joinDetails(book.title, details, shelf && inLibraryLabel(shelf))}
-      style={({ pressed }) => [styles.row, shelf && styles.owned, pressed && styles.pressed]}>
+      style={({ pressed }) => [styles.row, shelf && [styles.owned, ShelfTints[shelf]], pressed && styles.pressed]}>
       <View>
         <BookCover
           key={book.isbn13}
@@ -89,8 +90,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: C.ownedBorder,
-    backgroundColor: C.owned,
   },
   pressed: {
     opacity: 0.7,
