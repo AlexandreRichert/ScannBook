@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BookSheet } from '@/components/book/BookSheet';
 import { BookSheetSkeleton } from '@/components/book/BookSheetSkeleton';
 import { BookStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
+import { LibraryPanel } from '@/components/library/LibraryPanel';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { MaxContentWidth } from '@/constants/theme';
 import { useBookByIsbn, type BookByIsbnState } from '@/hooks/useBookByIsbn';
@@ -69,7 +70,12 @@ function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => vo
     case 'loading':
       return <BookSheetSkeleton />;
     case 'success':
-      return <BookSheet book={state.book} />;
+            return (
+        <>
+          <BookSheet book={state.book} />
+          <LibraryPanel key={state.book.isbn13} book={state.book} />
+        </>
+      );
     case 'not-found':
       return (
         <BookStatus
