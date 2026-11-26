@@ -1,0 +1,38 @@
+{
+  "kind": "books#volumes",
+  "totalItems": 5,
+  "items": [
+    {
+      "id": "vol-other-edition",
+      "volumeInfo": {
+        "title": "Le Livre de test (poche)",
+        "industryIdentifiers": [{ "type": "ISBN_13", "identifier": "9791090636071" }]
+      }
+    },
+    {
+      "id": "vol-match",
+      "volumeInfo": {
+        "title": "Le Livre de test",
+        "industryIdentifiers": [{ "type": "ISBN_13", "identifier": "9780306406157" }]
+      }
+    },
+    {
+      "id": "vol-no-isbn13",
+      "volumeInfo": {
+        "title": "Un livre sans ISBN-13",
+        "industryIdentifiers": [{ "type": "ISBN_10", "identifier": "0306406152" }]
+      }
+    },
+    {
+      "id": "vol-no-title",
+      "volumeInfo": {
+        "industryIdentifiers": [{ "type": "ISBN_13", "identifier": "9782070612758" }]
+      }
+    },
+    {
+      "volumeInfo": {
+        "title": "Un volume sans id"
+      }
+    }
+  ]
+}
