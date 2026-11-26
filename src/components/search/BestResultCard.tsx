@@ -3,15 +3,19 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BookWithSpine } from '@/components/BookWithSpine';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { ShelfTag } from '@/components/search/ShelfTag';
 import { authorsLabel, joinDetails, publicationYear } from '@/lib/BookFormat';
+import { inLibraryLabel, type Shelf } from '@/lib/Shelves';
 import type { BookInfo } from '@/types/Book';
 
 type BestResultCardProps = {
   book: BookInfo;
+  /** Set when the book is already in the library. */
+  shelf?: Shelf;
   onPress: () => void;
 };
 
-export function BestResultCard({ book, onPress }: BestResultCardProps) {
+export function BestResultCard({ book, shelf, onPress }: BestResultCardProps) {
   const authors = authorsLabel(book.authors);
   const details = joinDetails(
     book.publisher,
@@ -23,8 +27,14 @@ export function BestResultCard({ book, onPress }: BestResultCardProps) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={joinDetails('Meilleur résultat', book.title, authors, details)}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+      accessibilityLabel={joinDetails(
+        'Meilleur résultat',
+        book.title,
+        authors,
+        details,
+        shelf && inLibraryLabel(shelf),
+      )}
+      style={({ pressed }) => [styles.card, shelf && styles.owned, pressed && styles.pressed]}>
       <View style={styles.tilt}>
         <BookWithSpine key={book.isbn13} title={book.title} coverUrl={book.coverUrl} width={88} />
       </View>
@@ -40,6 +50,11 @@ export function BestResultCard({ book, onPress }: BestResultCardProps) {
           <Text style={styles.details} numberOfLines={2}>
             {details}
           </Text>
+        )}
+        {shelf && (
+          <View style={styles.tag}>
+            <ShelfTag shelf={shelf} />
+          </View>
         )}
       </View>
       <SymbolView
@@ -93,6 +108,14 @@ const styles = StyleSheet.create({
     color: C.textTertiary,
     fontSize: 13,
     lineHeight: 18,
+  },
+  owned: {
+    borderWidth: 1.5,
+    borderColor: C.primary,
+    backgroundColor: C.owned,
+  },
+  tag: {
+    marginTop: 4,
   },
   pressed: {
     opacity: 0.7,

@@ -10,6 +10,11 @@ export const SHELF_LABELS: Record<Shelf, string> = {
   abandoned: 'Abandonné',
 };
 
+/** Screen reader text for a book the user already owns. */
+export function inLibraryLabel(shelf: Shelf): string {
+  return `Dans ta bibliothèque, pile ${SHELF_LABELS[shelf]}`;
+}
+
 /** Number of items on each shelf, zero included. */
 export function countByShelf(items: readonly { status: Shelf }[]): Record<Shelf, number> {
   const counts = { wishlist: 0, to_read: 0, reading: 0, read: 0, abandoned: 0 };

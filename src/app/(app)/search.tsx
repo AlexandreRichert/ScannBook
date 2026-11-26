@@ -10,6 +10,7 @@ import { SearchStatus } from '@/components/search/SearchStatus';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { MaxContentWidth } from '@/constants/theme';
 import { useBookSearch } from '@/hooks/useBookSearch';
+import { useLibraryShelves } from '@/hooks/useLibraryShelves';
 import type { BookInfo } from '@/types/Book';
 
 /** Search by title or author (Figma « Maquettes v2 », frame 06). */
@@ -17,6 +18,8 @@ export default function SearchScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { query, setQuery, submit, retry, state } = useBookSearch();
+  const results = state.status === 'success' ? state.results : [];
+  const shelves = useLibraryShelves(results.map((book) => book.isbn13));
 
   const openBook = (book: BookInfo) => router.push(`/book/${book.isbn13}`);
 
@@ -44,13 +47,20 @@ export default function SearchScreen() {
         <FlatList
           data={state.results.slice(1)}
           keyExtractor={(book) => book.isbn13}
-          renderItem={({ item }) => <SearchResultRow book={item} onPress={() => openBook(item)} />}
+          extraData={shelves}
+          renderItem={({ item }) => (
+            <SearchResultRow book={item} shelf={shelves.get(item.isbn13)} onPress={() => openBook(item)} />
+          )}
           ListHeaderComponent={
             <View style={styles.listHeader}>
               <Text style={styles.count} accessibilityLiveRegion="polite">
                 {state.results.length} résultat{state.results.length > 1 ? 's' : ''} pour « {state.query} »
               </Text>
-              <BestResultCard book={state.results[0]} onPress={() => openBook(state.results[0])} />
+              <BestResultCard
+                book={state.results[0]}
+                shelf={shelves.get(state.results[0].isbn13)}
+                onPress={() => openBook(state.results[0])}
+              />
             </View>
           }
           keyboardShouldPersistTaps="handled"
