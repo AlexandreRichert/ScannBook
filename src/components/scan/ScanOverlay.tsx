@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ScanScreenColors as C } from '@/constants/ScanScreenColors';
 import { BottomTabInset, Fonts } from '@/constants/theme';
-import { successFeedback, warningFeedback } from '@/lib/Haptics';
 
 const FRAME_WIDTH = 302;
 const FRAME_HEIGHT = 170;
@@ -46,14 +45,6 @@ export function ScanOverlay({
   onSearch,
 }: ScanOverlayProps) {
   const insets = useSafeAreaInsets();
-
-  // Effects fire on the transition only, while the scanner callback reports the same code many times a second
-  useEffect(() => {
-    if (locked) successFeedback();
-  }, [locked]);
-  useEffect(() => {
-    if (rejected) warningFeedback();
-  }, [rejected]);
 
   const cornerStyle = [styles.corner, locked && styles.cornerFound];
 

@@ -14,4 +14,4 @@ export const tapFeedback = () => play(Haptics.selectionAsync);
 export const successFeedback = () => play(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
 
 /** Something was refused, e.g. a barcode that is not an ISBN. */
-export const warningFeedback = () => play(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning));
+export const errorFeedback = () => play(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error));
