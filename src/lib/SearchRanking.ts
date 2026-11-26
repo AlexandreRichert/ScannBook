@@ -1,55 +1,89 @@
+import { SEARCH_SCORE, type SearchScoreCriterion } from '@/constants/Search';
+import { toNameWords, toWords, withoutIgnoredWords } from '@/lib/SearchText';
 import type { BookInfo } from '@/types/Book';
 
-/** "L'Étranger" → ["l", "etranger"] */
-function toWords(text: string): string[] {
-  return text
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .split(/[^\p{L}\p{N}]+/u)
-    .filter(Boolean);
+/** What a book matches, without any points. */
+type BookMatch = {
+  author: 'exact' | 'partial' | null;
+  title: 'exact' | 'contains' | null;
+};
+
+/** One rule per weight of `SEARCH_SCORE`: TypeScript fails if one is missing. */
+const CRITERIA: Record<SearchScoreCriterion, (match: BookMatch) => boolean> = {
+  authorExact: (match) => match.author === 'exact',
+  authorPartial: (match) => match.author === 'partial',
+  titleExact: (match) => match.title === 'exact',
+  titleContains: (match) => match.title === 'contains',
+  authorAndTitleBonus: (match) => match.author !== null && match.title !== null,
+};
+
+const CRITERION_NAMES = Object.keys(CRITERIA) as SearchScoreCriterion[];
+
+function score(match: BookMatch): number {
+  return CRITERION_NAMES.reduce(
+    (total, criterion) => total + (CRITERIA[criterion](match) ? SEARCH_SCORE[criterion] : 0),
+    0,
+  );
 }
 
-/** Every query word is in the title, or in a single author's name. */
-function isStrongMatch(book: BookInfo, queryWords: string[]): boolean {
-  const containsAll = (text: string) => {
-    const words = toWords(text);
-    return queryWords.every((word) => words.includes(word));
-  };
-  return containsAll(`${book.title} ${book.subtitle ?? ''}`) || book.authors.some(containsAll);
-}
-
-function interleave<T>(a: T[], b: T[]): T[] {
-  return Array.from({ length: Math.max(a.length, b.length) }, (_, i) => [a[i], b[i]])
-    .flat()
-    .filter((item) => item !== undefined);
+function sameWords(a: string[], b: string[]): boolean {
+  const setA = new Set(a);
+  const setB = new Set(b);
+  return setA.size === setB.size && [...setA].every((word) => setB.has(word));
 }
 
 /**
- * Merges author and title search results: strong matches first, then author
- * and title results alternate. Deduped by ISBN-13.
+ * Matches one author's name first, then the words left over against the title:
+ * "the outsider stephen king" → author "Stephen King", then title "outsider".
  */
-export function rankSearchResults(
-  byAuthor: BookInfo[],
-  byTitle: BookInfo[],
-  query: string,
-  limit: number,
-): BookInfo[] {
-  const queryWords = toWords(query);
-  const isStrong = (book: BookInfo) => isStrongMatch(book, queryWords);
-  const isWeak = (book: BookInfo) => !isStrong(book);
-  const ranked = [
-    ...interleave(byAuthor.filter(isStrong), byTitle.filter(isStrong)),
-    ...interleave(byAuthor.filter(isWeak), byTitle.filter(isWeak)),
-  ];
+function matchWithAuthor(book: BookInfo, author: string, queryWords: string[]): BookMatch {
+  const authorWords = toNameWords(author);
+  const found = authorWords.filter((word) => queryWords.includes(word));
+  const authorMatch =
+    found.length === 0 ? null : found.length === authorWords.length ? 'exact' : 'partial';
 
+  const rest = queryWords.filter((word) => !found.includes(word));
+  if (rest.length === 0) return { author: authorMatch, title: null };
+
+  const title = withoutIgnoredWords(toWords(book.title));
+  const titleAndSubtitle = withoutIgnoredWords(toWords(`${book.title} ${book.subtitle ?? ''}`));
+  const titleMatch = sameWords(title, rest)
+    ? 'exact'
+    : rest.every((word) => titleAndSubtitle.includes(word))
+      ? 'contains'
+      : null;
+
+  return { author: authorMatch, title: titleMatch };
+}
+
+/** Keeps the first book of each ISBN-13. */
+function uniqueByIsbn(books: BookInfo[]): BookInfo[] {
   const seen = new Set<string>();
   const unique: BookInfo[] = [];
-  for (const book of ranked) {
-    if (unique.length >= limit) break;
+  for (const book of books) {
     if (seen.has(book.isbn13)) continue;
     seen.add(book.isbn13);
     unique.push(book);
   }
   return unique;
+}
+
+/** Best score among the book's authors. */
+export function scoreBook(book: BookInfo, queryWords: string[]): number {
+  const authors = book.authors.length > 0 ? book.authors : [''];
+  return Math.max(...authors.map((author) => score(matchWithAuthor(book, author, queryWords))));
+}
+
+/**
+ * Highest score first; equal scores keep Google's order. Deduped by ISBN-13,
+ * at most `limit` books.
+ */
+export function rankSearchResults(books: BookInfo[], query: string, limit: number): BookInfo[] {
+  const queryWords = withoutIgnoredWords(toWords(query));
+
+  return uniqueByIsbn(books)
+    .map((book, index) => ({ book, index, score: scoreBook(book, queryWords) }))
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .slice(0, limit)
+    .map(({ book }) => book);
 }

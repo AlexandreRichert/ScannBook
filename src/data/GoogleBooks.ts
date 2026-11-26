@@ -6,7 +6,16 @@ import {
   toBookInfo,
   toSearchResults,
 } from '@/data/GoogleBooksAdapter'
+import {
+  SEARCH_CACHE_SIZE,
+  SEARCH_CACHE_TTL_MS,
+  SEARCH_FETCH_SIZE,
+  SEARCH_RESULTS_LIMIT,
+} from '@/constants/Search'
+import { parseIsbn } from '@/lib/Isbn'
+import { LruCache } from '@/lib/LruCache'
 import { rankSearchResults } from '@/lib/SearchRanking'
+import { normalizeQuery } from '@/lib/SearchText'
 import type { BookInfo } from '@/types/Book'
 
 const BASE_URL = 'https://www.googleapis.com/books/v1'
@@ -14,9 +23,7 @@ const TIMEOUT_MS = 10_000
 
 const API_KEY = process.env.EXPO_PUBLIC_GOOGLE_BOOKS_API_KEY
 
-export const SEARCH_RESULTS_LIMIT = 20
-/** API maximum: volumes without an ISBN-13 get filtered out. */
-const SEARCH_MAX_RESULTS = 40
+const searchCache = new LruCache<BookInfo[]>(SEARCH_CACHE_SIZE, SEARCH_CACHE_TTL_MS)
 
 export type GoogleBooksErrorKind =
   /** No connection, DNS failure, timeout. Retrying may work. */
@@ -122,36 +129,35 @@ export async function fetchBookByIsbn(isbn13: string, signal?: AbortSignal): Pro
   }
 }
 
-type SearchField = 'inauthor' | 'intitle'
-
-/** One prefix per word, so `albert camus` also matches "Camus, Albert". */
-async function searchByField(field: SearchField, words: string[], signal?: AbortSignal): Promise<BookInfo[]> {
-  const q = words.map((word) => `${field}:${word}`).join(' ')
-  const json = await getJson(
-    `/volumes?q=${encodeURIComponent(q)}&maxResults=${SEARCH_MAX_RESULTS}&printType=books`,
-    signal,
-  )
-  return toSearchResults(json)
+/** `text` comes from `normalizeQuery`: not empty, without operators. */
+async function searchByText(text: string, signal?: AbortSignal): Promise<BookInfo[]> {
+  try {
+    const json = await getJson(
+      `/volumes?q=${encodeURIComponent(text)}&maxResults=${SEARCH_FETCH_SIZE}&orderBy=relevance&printType=books`,
+      signal,
+    )
+    return rankSearchResults(toSearchResults(json), text, SEARCH_RESULTS_LIMIT)
+  } catch (error) {
+    throw toGoogleBooksError(error)
+  }
 }
 
 /**
- * Searches by author and by title in parallel, then ranks the results.
- * One failed request is tolerated; both failing throws a `GoogleBooksError`.
+ * One request, ranked locally (ADR-006). An ISBN goes through the ISBN lookup.
+ * Answers are cached; errors are not.
  */
 export async function searchBooks(query: string, signal?: AbortSignal): Promise<BookInfo[]> {
-  // Quotes and colons are search operators.
-  const words = query.replace(/[":]/g, ' ').split(/\s+/).filter(Boolean)
-  if (words.length === 0) return []
+  const key = normalizeQuery(query)
+  if (key === '') return []
 
-  const results = await Promise.allSettled([
-    searchByField('inauthor', words, signal),
-    searchByField('intitle', words, signal),
-  ])
-  const failures = results.flatMap((result) => (result.status === 'rejected' ? [result.reason] : []))
-  const aborted = failures.find(isAbortError)
-  if (aborted) throw aborted
-  if (failures.length === results.length) throw toGoogleBooksError(failures[0])
+  const cached = searchCache.get(key)
+  if (cached) return cached
 
-  const [byAuthor, byTitle] = results.map((result) => (result.status === 'fulfilled' ? result.value : []))
-  return rankSearchResults(byAuthor, byTitle, words.join(' '), SEARCH_RESULTS_LIMIT)
+  const isbn = parseIsbn(key)
+  const results = isbn.ok
+    ? await fetchBookByIsbn(isbn.isbn13, signal).then((found) => (found.status === 'found' ? [found.book] : []))
+    : await searchByText(key, signal)
+
+  searchCache.set(key, results)
+  return results
 }
