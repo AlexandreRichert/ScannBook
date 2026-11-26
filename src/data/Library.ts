@@ -45,6 +45,17 @@ export async function addToLibrary(book: BookInfo, shelf: Shelf): Promise<Librar
   return data;
 }
 
+export async function moveToShelf(entry: LibraryEntry, shelf: Shelf): Promise<LibraryEntry> {
+  const { data, error } = await supabase
+    .from('books')
+    .update({ status: shelf, ...datesForShelf(shelf, entry) })
+    .eq('id', entry.id)
+    .select(ENTRY_COLUMNS)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export function libraryErrorMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
   if (code === DUPLICATE_BOOK) return 'Ce livre est déjà dans ta bibliothèque.';

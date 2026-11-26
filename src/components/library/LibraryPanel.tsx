@@ -1,17 +1,17 @@
-import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import { StatusButton } from '@/components/book/BookStatus';
+import { ShelfCard } from '@/components/library/ShelfCard';
 import { ShelfPicker } from '@/components/library/ShelfPicker';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { useLibraryEntry } from '@/hooks/useLibraryEntry';
-import { SHELF_LABELS, type Shelf } from '@/lib/Shelves';
+import type { Shelf } from '@/lib/Shelves';
 import type { BookInfo } from '@/types/Book';
 
-/** Bottom of the book screen: add the book to a shelf, or show the shelf it is on. */
+/** Bottom of the book screen: add the book to a shelf, or show and change the shelf it is on. */
 export function LibraryPanel({ book }: { book: BookInfo }) {
-  const { state, reload, add } = useLibraryEntry(book.isbn13);
+  const { state, reload, add, move } = useLibraryEntry(book.isbn13);
   const [shelf, setShelf] = useState<Shelf>('to_read');
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -37,18 +37,7 @@ export function LibraryPanel({ book }: { book: BookInfo }) {
   }
 
   if (state.status === 'present') {
-    return (
-      <View style={[styles.panel, styles.confirmation]} accessibilityLiveRegion="polite">
-        <SymbolView
-          name={{ ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }}
-          size={22}
-          tintColor={C.primary}
-        />
-        <Text style={styles.confirmationText}>
-          Dans ta pile <Text style={styles.strong}>{SHELF_LABELS[state.entry.status]}</Text>
-        </Text>
-      </View>
-    );
+    return <ShelfCard entry={state.entry} onMove={move} />;
   }
 
   return (
@@ -75,24 +64,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: C.text,
     fontSize: 17,
-    fontWeight: '700',
-  },
-  confirmation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: C.surface,
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  confirmationText: {
-    flex: 1,
-    color: C.text,
-    fontSize: 16,
-  },
-  strong: {
     fontWeight: '700',
   },
   error: {

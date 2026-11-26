@@ -20,6 +20,12 @@ export function localToday(now = new Date()): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
+/** `2026-11-26` → `26/11/2026`. */
+export function formatDay(day: string): string {
+  const [year, month, date] = day.split('-');
+  return `${date}/${month}/${year}`;
+}
+
 /** Reading dates a book gets when it lands on `shelf`, given the dates it already has. */
 export function datesForShelf(shelf: Shelf, current: ReadingDates = NO_DATES, today = localToday()): ReadingDates {
   switch (shelf) {
