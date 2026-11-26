@@ -39,6 +39,7 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | [0003](docs/adr/0003-library-supabase.md)          |
 | Book data            | Google Books API v1 (`fetch` + adapter)                          | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
 | Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)          | -                                           |
+| Password reset       | 6-digit email code, sent through custom SMTP (project Gmail)     | [0004](docs/adr/0004-password-reset-with-email-code.md) |
 
 All recorded decisions are listed in [docs/adr/](docs/adr/).
 

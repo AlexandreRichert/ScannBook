@@ -8,10 +8,13 @@ import { authErrorMessage } from '@/lib/AuthErrors';
 type AuthContextValue = {
   session: Session | null;
   isLoading: boolean;
+  isRecovering: boolean;
   /** Resolves to a French error message, or null on success. */
   signUp: (email: string, password: string) => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<string | null>;
+  resetPassword: (email: string, code: string, password: string) => Promise<string | null>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -19,6 +22,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRecovering, setIsRecovering] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -29,7 +33,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
     // Keep this callback synchronous: awaiting another Supabase call inside it can deadlock the client
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => setSession(newSession));
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      setSession(newSession);
+      // A valid recovery code signs the user in before they have picked a new password
+      if (event === 'PASSWORD_RECOVERY') setIsRecovering(true);
+      if (event === 'SIGNED_OUT') setIsRecovering(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -50,8 +59,30 @@ export function AuthProvider({ children }: PropsWithChildren) {
     if (!data.session) return 'Compte créé : confirme ton adresse email avant de te connecter.';
     return null;
   }
+  async function requestPasswordReset(email: string) {
+    // Succeeds even for unknown emails, so the screen never reveals who has an account
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    return error ? authErrorMessage(error.code) : null;
+  }
 
-  return <AuthContext value={{ session, isLoading, signIn, signOut, signUp }}>{children}</AuthContext>;
+  async function resetPassword(email: string, code: string, password: string) {
+    // On a retry the code is already used, the recovery session is what remains
+    if (!isRecovering) {
+      const { error } = await supabase.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'recovery' });
+      if (error) return authErrorMessage(error.code);
+    }
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return authErrorMessage(error.code);
+    setIsRecovering(false);
+    return null;
+  }
+
+  return (
+    <AuthContext
+      value={{ session, isLoading, isRecovering, signIn, signOut, signUp, requestPasswordReset, resetPassword }}>
+      {children}
+    </AuthContext>
+  );
 }
 
 export function useAuth() {

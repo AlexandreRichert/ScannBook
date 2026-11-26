@@ -11,6 +11,13 @@ export function authErrorMessage(code: string | undefined): string {
       return 'Adresse email invalide.';
     case 'weak_password':
       return 'Le mot de passe doit contenir au moins 6 caractères.';
+    case 'otp_expired':
+      return 'Code invalide ou expiré. Redemande un code.';
+    case 'same_password':
+      return 'Choisis un mot de passe différent de l’ancien.';
+    case 'over_email_send_rate_limit':
+    case 'over_request_rate_limit':
+      return 'Trop de tentatives. Réessaie dans quelques minutes.';
     default:
       return 'Une erreur est survenue. Vérifie ta connexion et réessaie.';
   }
