@@ -29,18 +29,18 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 
 ## Stack
 
-| Need                 | Choice                                                           | ADR                                         |
-| -------------------- | ---------------------------------------------------------------- | ------------------------------------------- |
-| Platform             | React Native (iOS + Android, a single codebase)                  | [0001](docs/adr/0001-adopt-react-native.md) |
-| Framework            | Expo SDK 58, tested on a phone with Expo Go                      | [0001](docs/adr/0001-adopt-react-native.md) |
-| Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack             | —                                           |
-| Language             | Strict TypeScript                                                | [0001](docs/adr/0001-adopt-react-native.md) |
-| Book data            | Google Books API v1 (`fetch` + adapter)                          | -                                           |
-| Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security | [0003](docs/adr/0003-library-supabase.md)          |
-| Book data            | Google Books API v1 (`fetch` + adapter)                          | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
-| Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)          | -                                           |
-| Password reset       | 6-digit email code, sent through custom SMTP (project Gmail)     | [0004](docs/adr/0004-password-reset-with-email-code.md) |
-| Reading dates        | Set automatically when a book changes shelf                      | [0005](docs/adr/0005-reading-dates-follow-the-shelf.md) |
+| Need                 | Choice                                                             | ADR                                                           |
+| -------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------- |
+| Platform             | React Native (iOS + Android, a single codebase)                    | [0001](docs/adr/0001-adopt-react-native.md)                   |
+| Framework            | Expo SDK 58, tested on a phone with Expo Go                        | [0001](docs/adr/0001-adopt-react-native.md)                   |
+| Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack               | —                                                             |
+| Language             | Strict TypeScript                                                  | [0001](docs/adr/0001-adopt-react-native.md)                   |
+| Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security   | [0003](docs/adr/0003-library-supabase.md)                     |
+| Book data            | Google Books API v1 (`fetch` + adapter)                            | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
+| Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)            | -                                                             |
+| Password reset       | 6-digit email code, sent through custom SMTP (project Gmail)       | [0004](docs/adr/0004-password-reset-with-email-code.md)       |
+| Reading dates        | Set automatically when a book changes shelf                        | [0005](docs/adr/0005-reading-dates-follow-the-shelf.md)       |
+| Book search          | One Google Books request, local relevance scoring, in-memory cache | [0006](docs/adr/0006-search-relevance-scoring.md)             |
 
 All recorded decisions are listed in [docs/adr/](docs/adr/).
 
