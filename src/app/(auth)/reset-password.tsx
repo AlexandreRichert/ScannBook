@@ -2,8 +2,8 @@ import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { AuthForm } from '@/components/auth/AuthForm';
-import { ThemedText } from '@/components/themed-text';
-import { TextField } from '@/components/ui/TextField';
+import { AuthLink } from '@/components/auth/AuthLink';
+import { FieldIcons, TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { validateResetPassword, type ResetPasswordErrors } from '@/lib/ResetPasswordValidation';
 
@@ -48,13 +48,10 @@ export default function ResetPasswordScreen() {
       submitLabel={isSubmitting ? 'Enregistrement…' : 'Changer mon mot de passe'}
       canSubmit={canSubmit}
       onSubmit={handleSubmit}
-      footer={
-        <ThemedText type="linkPrimary" onPress={cancel}>
-          Annuler
-        </ThemedText>
-      }>
+      footer={<AuthLink label="Annuler" onPress={cancel} />}>
       <TextField
         label="Code reçu par email"
+        icon={FieldIcons.code}
         value={code}
         onChangeText={setCode}
         error={fieldErrors.code}
@@ -66,16 +63,19 @@ export default function ResetPasswordScreen() {
       />
       <TextField
         label="Nouveau mot de passe"
+        icon={FieldIcons.password}
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}
-        placeholder="6 caractères minimum"
+        hint="6 caractères minimum"
         secureTextEntry
+        revealable
         autoComplete="new-password"
         textContentType="newPassword"
       />
       <TextField
-        label="Confirmation du mot de passe"
+        label="Confirmer le mot de passe"
+        icon={FieldIcons.password}
         value={confirmation}
         onChangeText={setConfirmation}
         error={fieldErrors.confirmation}

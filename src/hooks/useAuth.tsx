@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type PropsWithChildren 
 
 import { supabase } from '@/data/Supabase';
 import { authErrorMessage } from '@/lib/AuthErrors';
+import type { ProfileName } from '@/lib/ProfileName';
 
 type AuthContextValue = {
   session: Session | null;
@@ -15,6 +16,8 @@ type AuthContextValue = {
   signOut: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<string | null>;
   resetPassword: (email: string, code: string, password: string) => Promise<string | null>;
+  /** Resolves to a French error message, or null on success. */
+  updateName: (name: ProfileName) => Promise<string | null>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -77,9 +80,27 @@ export function AuthProvider({ children }: PropsWithChildren) {
     return null;
   }
 
+  // Stored as account metadata, so no table is needed; USER_UPDATED then refreshes the session
+  async function updateName({ firstName, lastName }: ProfileName) {
+    const { error } = await supabase.auth.updateUser({
+      data: { first_name: firstName.trim(), last_name: lastName.trim() },
+    });
+    return error ? authErrorMessage(error.code) : null;
+  }
+
   return (
     <AuthContext
-      value={{ session, isLoading, isRecovering, signIn, signOut, signUp, requestPasswordReset, resetPassword }}>
+      value={{
+        session,
+        isLoading,
+        isRecovering,
+        signIn,
+        signOut,
+        signUp,
+        requestPasswordReset,
+        resetPassword,
+        updateName,
+      }}>
       {children}
     </AuthContext>
   );

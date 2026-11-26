@@ -2,8 +2,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import { AuthForm } from '@/components/auth/AuthForm';
-import { ThemedText } from '@/components/themed-text';
-import { TextField } from '@/components/ui/TextField';
+import { AuthLink } from '@/components/auth/AuthLink';
+import { FieldIcons, TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function ForgotPasswordScreen() {
@@ -23,21 +23,24 @@ export default function ForgotPasswordScreen() {
     if (!message) router.push({ pathname: '/reset-password', params: { email: email.trim() } });
   }
 
+  function goToSignIn() {
+    if (router.canGoBack()) router.back();
+    else router.replace('/sign-in');
+  }
+
   return (
     <AuthForm
-      title="Mot de passe oublié"
+      title="Mot de passe oublié ?"
       subtitle="Saisis ton email, on t'envoie un code pour choisir un nouveau mot de passe."
       error={error}
       submitLabel={isSubmitting ? 'Envoi…' : 'Recevoir un code'}
       canSubmit={canSubmit}
       onSubmit={handleSubmit}
-      footer={
-        <ThemedText type="linkPrimary" onPress={() => router.back()}>
-          Retour à la connexion
-        </ThemedText>
-      }>
+      back={{ label: 'Connexion', onPress: goToSignIn }}
+      footer={<AuthLink label="Retour à la connexion" onPress={goToSignIn} />}>
       <TextField
         label="Email"
+        icon={FieldIcons.email}
         value={email}
         onChangeText={setEmail}
         placeholder="toi@exemple.fr"

@@ -6,6 +6,7 @@ import { ActivityIndicator, AppState, Linking, Platform, StyleSheet, View } from
 
 import { ScanOverlay } from '@/components/scan/ScanOverlay';
 import { ScanUnavailable } from '@/components/scan/ScanUnavailable';
+import { ScanScreenColors as C } from '@/constants/ScanScreenColors';
 import { useNavigateOnce } from '@/hooks/useNavigateOnce';
 import { parseIsbn } from '@/lib/Isbn';
 
@@ -112,7 +113,7 @@ function CameraScanner({ navigate, onManualEntry, onSearch }: CameraScannerProps
   if (!permission) {
     return (
       <View style={[styles.camera, styles.loading]}>
-        <ActivityIndicator color="#fff" accessibilityLabel="Chargement de la caméra" />
+        <ActivityIndicator color={C.onCamera} accessibilityLabel="Chargement de la caméra" />
       </View>
     );
   }
@@ -174,7 +175,7 @@ function CameraScanner({ navigate, onManualEntry, onSearch }: CameraScannerProps
 const styles = StyleSheet.create({
   camera: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: C.camera,
   },
   loading: {
     alignItems: 'center',

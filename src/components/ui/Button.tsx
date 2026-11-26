@@ -1,8 +1,6 @@
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+import { Fonts, Palette } from '@/constants/theme';
 
 type ButtonProps = {
   label: string;
@@ -12,8 +10,6 @@ type ButtonProps = {
 };
 
 export function Button({ label, onPress, disabled = false, fullWidth = false }: ButtonProps) {
-  const theme = useTheme();
-
   return (
     <Pressable
       onPress={onPress}
@@ -22,13 +18,10 @@ export function Button({ label, onPress, disabled = false, fullWidth = false }: 
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.button,
-        { backgroundColor: theme.text },
         fullWidth && styles.fullWidth,
         (pressed || disabled) && styles.dimmed,
       ]}>
-      <ThemedText type="smallBold" style={{ color: theme.background }}>
-        {label}
-      </ThemedText>
+      <Text style={styles.label}>{label}</Text>
     </Pressable>
   );
 }
@@ -38,15 +31,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.two,
-    minHeight: 44,
+    paddingHorizontal: 24,
+    borderRadius: 4,
+    minHeight: 56,
+    backgroundColor: Palette.ink,
   },
   fullWidth: {
     alignSelf: 'stretch',
   },
   dimmed: {
     opacity: 0.6,
+  },
+  label: {
+    color: Palette.inkInverse,
+    fontFamily: Fonts.display,
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '700',
+    letterSpacing: -0.16,
   },
 });

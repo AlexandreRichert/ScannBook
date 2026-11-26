@@ -1,9 +1,9 @@
-import { Link } from 'expo-router';
 import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { AuthForm } from '@/components/auth/AuthForm';
-import { ThemedText } from '@/components/themed-text';
-import { TextField } from '@/components/ui/TextField';
+import { AuthLink, AuthPrompt } from '@/components/auth/AuthLink';
+import { FieldIcons, TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function SignInScreen() {
@@ -22,24 +22,23 @@ export default function SignInScreen() {
     setIsSubmitting(false);
   }
 
-    return (
+  return (
     <AuthForm
-      title="Connexion"
-      subtitle="Retrouve tes piles de lecture."
+      hero
+      title="Pile à lire"
+      subtitle="Scanne, range, suis tes lectures."
       error={error}
       submitLabel={isSubmitting ? 'Connexion…' : 'Se connecter'}
       canSubmit={canSubmit}
       onSubmit={handleSubmit}
       footer={
-        <ThemedText type="small">
-          Pas encore de compte ?{' '}
-          <Link href="/sign-up">
-            <ThemedText type="linkPrimary">Créer un compte</ThemedText>
-          </Link>
-        </ThemedText>
+        <AuthPrompt question="Pas encore de compte ?">
+          <AuthLink href="/sign-up" label="Créer un compte" />
+        </AuthPrompt>
       }>
       <TextField
         label="Email"
+        icon={FieldIcons.email}
         value={email}
         onChangeText={setEmail}
         placeholder="toi@exemple.fr"
@@ -51,17 +50,24 @@ export default function SignInScreen() {
       />
       <TextField
         label="Mot de passe"
+        icon={FieldIcons.password}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        revealable
         autoComplete="current-password"
         textContentType="password"
         returnKeyType="go"
         onSubmitEditing={handleSubmit}
       />
-      <Link href="/forgot-password">
-        <ThemedText type="linkPrimary">Mot de passe oublié ?</ThemedText>
-      </Link>
+      <View style={styles.forgot}>
+        <AuthLink href="/forgot-password" label="Mot de passe oublié ?" tone="subtle" />
+      </View>
     </AuthForm>
   );
 }
+const styles = StyleSheet.create({
+  forgot: {
+    alignSelf: 'flex-end',
+  },
+});

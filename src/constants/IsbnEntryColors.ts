@@ -1,21 +1,19 @@
-/**
- * Colors of the manual ISBN entry mockup (Figma « Maquettes — Pile à lire »,
- * frame 05).
- *
- * Local to the screen for now: they will move into the global theme
- * (`Colors` in theme.ts) on a dedicated branch. Light only, like the mockups.
- */
+import { Palette } from '@/constants/theme';
+
+/** Manual ISBN entry colors, mapped onto the v2 palette. */
 export const IsbnEntryColors = {
-  background: '#FAF7F2',
-  surface: '#FFFFFF',
-  border: '#E7E2DA',
-  text: '#1C1917',
-  textSecondary: '#57534E',
-  textTertiary: '#78716C',
-  primary: '#1F4E46',
-  onPrimary: '#FFFFFF',
-  error: '#B42318',
-  illustration: '#E4EEEA',
-  /** Sheet grabber and clear icon. */
-  muted: '#D6D3D1',
+  background: Palette.paper,
+  surface: Palette.paperRaised,
+  border: Palette.lineStrong,
+  text: Palette.ink,
+  textSecondary: Palette.inkSecondary,
+  textTertiary: Palette.inkTertiary,
+  primary: Palette.ink,
+  onPrimary: Palette.inkInverse,
+  accent: Palette.accentStrong,
+  error: Palette.danger,
+  /** Figma « tint/tomate », behind the help pictogram. Not in Palette yet. */
+  tint: '#FBDDD3',
+  /** Sheet grabber. */
+  grabber: Palette.line,
 } as const;

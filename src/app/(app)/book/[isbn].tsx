@@ -2,14 +2,15 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BookSheet } from '@/components/book/BookSheet';
+import { BOOK_SHEET_GUTTER } from '@/components/book/BookSheet';
 import { BookSheetSkeleton } from '@/components/book/BookSheetSkeleton';
 import { BookStatus, LookupErrorStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
 import { LibraryPanel } from '@/components/library/LibraryPanel';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
-import { MaxContentWidth } from '@/constants/theme';
+import { Fonts, MaxContentWidth } from '@/constants/theme';
 import { useBookByIsbn, type BookByIsbnState } from '@/hooks/useBookByIsbn';
 import { invalidIsbnMessage } from '@/lib/BookLookupMessages';
 
@@ -34,6 +35,7 @@ export default function BookScreen() {
           title: '',
           headerBackTitle: 'Retour',
           headerTintColor: C.primary,
+          headerBackTitleStyle: { fontFamily: Fonts.body },
           headerStyle: { backgroundColor: C.background },
           headerShadowVisible: false,
         }}
@@ -46,7 +48,9 @@ export default function BookScreen() {
           isStatus && styles.statusContent,
           { paddingBottom: insets.bottom + 24 },
         ]}>
-        <Content state={state} onRetry={retry} />
+        <Animated.View key={state.status} entering={FadeIn.duration(220)}>
+          <Content state={state} onRetry={retry} />
+        </Animated.View>
       </ScrollView>
     </>
   );
@@ -66,11 +70,8 @@ function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => vo
     case 'loading':
       return <BookSheetSkeleton />;
     case 'success':
-            return (
-        <>
-          <BookSheet book={state.book} />
-          <LibraryPanel key={state.book.isbn13} book={state.book} />
-        </>
+      return (
+        <LibraryPanel key={state.book.isbn13} book={state.book} />
       );
     case 'not-found':
       return (
@@ -112,8 +113,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingHorizontal: BOOK_SHEET_GUTTER,
+    paddingTop: 8,
   },
   statusContent: {
     flexGrow: 1,

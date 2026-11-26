@@ -1,6 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { Palette } from '@/constants/theme';
 
 /** `ratio` between 0 and 1. */
 export function ProgressBar({ ratio }: { ratio: number }) {
@@ -25,6 +26,6 @@ const styles = StyleSheet.create({
   fill: {
     height: '100%',
     borderRadius: 3,
-    backgroundColor: C.primary,
+    backgroundColor: Palette.accent,
   },
 });

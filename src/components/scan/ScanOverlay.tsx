@@ -1,15 +1,29 @@
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabInset } from '@/constants/theme';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { ScanScreenColors as C } from '@/constants/ScanScreenColors';
+import { BottomTabInset, Fonts } from '@/constants/theme';
+import { successFeedback, warningFeedback } from '@/lib/Haptics';
 
-const FRAME_WIDTH = 300;
-const FRAME_HEIGHT = 180;
-const CORNER_SIZE = 40;
-const CORNER_STROKE = 4;
-const CORNER_RADIUS = 14;
+const FRAME_WIDTH = 302;
+const FRAME_HEIGHT = 170;
+const FRAME_RADIUS = 12;
+const CORNER_SIZE = 36;
+// The line sweeps between these insets so it never touches the corner strokes
+const LINE_INSET = 18;
+const CORNER_STROKE = 3;
+const CORNER_RADIUS = FRAME_RADIUS + CORNER_STROKE / 2;
 
 type ScanOverlayProps = {
   torch: boolean;
@@ -32,12 +46,20 @@ export function ScanOverlay({
   onSearch,
 }: ScanOverlayProps) {
   const insets = useSafeAreaInsets();
-  const cornerColor = locked ? C.scanLine : C.onCamera;
+
+  // Effects fire on the transition only, while the scanner callback reports the same code many times a second
+  useEffect(() => {
+    if (locked) successFeedback();
+  }, [locked]);
+  useEffect(() => {
+    if (rejected) warningFeedback();
+  }, [rejected]);
+
+  const cornerStyle = [styles.corner, locked && styles.cornerFound];
 
   return (
     <View style={StyleSheet.absoluteFill}>
-      {/* Top veil with the title and the torch */}
-      <View style={[styles.band, styles.top, { paddingTop: insets.top + 23 }]}>
+      <View style={[styles.section, styles.top, { paddingTop: insets.top + 6 }]}>
         <View style={styles.header}>
           <Text style={styles.screenTitle} accessibilityRole="header">
             Scanner un livre
@@ -48,7 +70,7 @@ export function ScanOverlay({
             accessibilityLabel="Lampe"
             accessibilityState={{ checked: torch }}
             hitSlop={8}
-            style={({ pressed }) => [styles.torch, pressed && styles.pressed]}>
+            style={({ pressed }) => [styles.torch, torch && styles.torchOn, pressed && styles.pressed]}>
             <SymbolView
               name={
                 torch
@@ -56,35 +78,38 @@ export function ScanOverlay({
                   : { ios: 'bolt', android: 'flash_off', web: 'flash_off' }
               }
               size={20}
-              tintColor={C.onCamera}
+              tintColor={torch ? C.primary : C.onCamera}
             />
           </Pressable>
         </View>
       </View>
 
-      {/* Viewfinder row: veil | clear frame | veil */}
       <View style={styles.frameRow}>
-        <View style={styles.veil} />
+        {/* The veil is the frame's spread shadow: it follows the rounded corners,
+            which a grid of veil Views around a clear hole cannot do. */}
         <View style={styles.frame}>
-          <View style={[styles.corner, styles.topLeft, { borderColor: cornerColor }]} />
-          <View style={[styles.corner, styles.topRight, { borderColor: cornerColor }]} />
-          <View style={[styles.corner, styles.bottomLeft, { borderColor: cornerColor }]} />
-          <View style={[styles.corner, styles.bottomRight, { borderColor: cornerColor }]} />
-          {!locked && <View style={styles.scanLine} />}
+          <View style={[cornerStyle, styles.topLeft]} />
+          <View style={[cornerStyle, styles.topRight]} />
+          <View style={[cornerStyle, styles.bottomLeft]} />
+          <View style={[cornerStyle, styles.bottomRight]} />
+          {!locked && <ScanLine />}
         </View>
-        <View style={styles.veil} />
       </View>
 
-      {/* Bottom veil with the instructions, the result and the other ways to find a book */}
       <View
-        style={[styles.band, styles.bottom, { paddingBottom: insets.bottom + BottomTabInset + 24 }]}>
-        {rejected ? (
-          <View style={styles.rejected} accessibilityLiveRegion="polite">
-            <Text style={styles.rejectedText}>Ce code-barres n’est pas un ISBN</Text>
-          </View>
+        style={[styles.section, styles.bottom, { paddingBottom: insets.bottom + BottomTabInset + 24 }]}>
+        {locked ? (
+          <Animated.View entering={FadeIn.duration(150)} style={[styles.pill, styles.found]} accessibilityLiveRegion="polite">
+            <SymbolView name={{ ios: 'checkmark', android: 'check', web: 'check' }} size={16} tintColor={C.text} />
+            <Text style={[styles.pillText, styles.foundText]}>Livre trouvé</Text>
+          </Animated.View>
+        ) : rejected ? (
+          <Animated.View entering={FadeIn.duration(150)} style={[styles.pill, styles.rejected]} accessibilityLiveRegion="polite">
+            <Text style={styles.pillText}>Ce code-barres n’est pas un ISBN</Text>
+          </Animated.View>
         ) : (
           <View style={styles.instructions}>
-            <Text style={styles.instruction}>Placez le code-barres dans le cadre</Text>
+            <Text style={styles.instruction}>Place le code-barres dans le cadre</Text>
             <Text style={styles.hint}>ISBN : EAN-13 commençant par 978 ou 979</Text>
           </View>
         )}
@@ -120,74 +145,93 @@ type OverlayButtonProps = {
   onPress: () => void;
 };
 
-/** Dark pill over the camera feed. The icon is decorative: only the label is read. */
+/** Dark button over the camera feed. The icon is decorative: only the label is read. */
 function OverlayButton({ icon, label, hint, disabled, onPress }: OverlayButtonProps) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint}
       accessibilityState={{ disabled }}
-      style={({ pressed }) => [styles.overlayButton, (pressed || disabled) && styles.pressed]}>
+      style={[styles.overlayButton, disabled && styles.disabled]}>
       <SymbolView name={icon} size={18} tintColor={C.onCamera} />
       <Text style={styles.overlayButtonLabel}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
+/** Laser line sweeping the frame, so the screen reads as looking for a code rather than frozen. */
+function ScanLine() {
+  const progress = useSharedValue(0);
+  const style = useAnimatedStyle(() => ({
+    transform: [{ translateY: LINE_INSET + progress.get() * (FRAME_HEIGHT - 2 * LINE_INSET) }],
+  }));
+
+  useEffect(() => {
+    progress.set(withRepeat(withTiming(1, { duration: 1400, easing: Easing.inOut(Easing.quad) }), -1, true));
+  }, [progress]);
+
+  return <Animated.View style={[styles.scanLine, style]} />;
+}
+
 const styles = StyleSheet.create({
-  veil: {
-    flex: 1,
-    backgroundColor: C.veil,
-  },
-  // Top and bottom veils: never smaller than their content, then they share the space left.
-  // The buttons can't slide under the tab bar, whatever the screen or text size.
-  band: {
+  // Above the frame, whose spread shadow would otherwise cover them. Never smaller than
+  // their content, so the buttons can't slide under the tab bar on a small screen or with large text.
+  section: {
     flexGrow: 1,
     flexShrink: 0,
     flexBasis: 'auto',
-    backgroundColor: C.veil,
-  },
-  top: {
+    zIndex: 1,
     paddingHorizontal: 24,
   },
+  top: {
+    justifyContent: 'flex-start',
+  },
   header: {
-    height: 40,
+    height: 44,
     justifyContent: 'center',
   },
   screenTitle: {
     color: C.onCamera,
-    fontSize: 17,
-    lineHeight: 21,
+    fontFamily: Fonts.display,
+    fontSize: 22,
+    lineHeight: 28,
     fontWeight: '700',
+    letterSpacing: -0.55,
     textAlign: 'center',
   },
   torch: {
     position: 'absolute',
     right: 0,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: C.onCameraControl,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  torchOn: {
+    backgroundColor: C.onCamera,
+  },
   frameRow: {
-    flexDirection: 'row',
     height: FRAME_HEIGHT,
+    paddingHorizontal: 24,
+    alignItems: 'center',
   },
   frame: {
-    width: FRAME_WIDTH,
+    width: '100%',
+    maxWidth: FRAME_WIDTH,
     height: FRAME_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: FRAME_RADIUS,
+    boxShadow: `0 0 0 2000px ${C.veil}`,
   },
   corner: {
     position: 'absolute',
     width: CORNER_SIZE,
     height: CORNER_SIZE,
+    borderColor: C.viewfinder,
   },
   topLeft: {
     top: 0,
@@ -217,51 +261,75 @@ const styles = StyleSheet.create({
     borderRightWidth: CORNER_STROKE,
     borderBottomRightRadius: CORNER_RADIUS,
   },
+  cornerFound: {
+    borderColor: C.onCamera,
+  },
   scanLine: {
-    width: FRAME_WIDTH - 40,
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    right: 20,
     height: 2,
-    backgroundColor: C.scanLine,
+    borderRadius: 1,
+    backgroundColor: C.viewfinder,
+    boxShadow: `0 0 10px ${C.scanLineGlow}`,
   },
   bottom: {
     alignItems: 'center',
     paddingTop: 34,
-    paddingHorizontal: 24,
   },
   instructions: {
     alignItems: 'center',
-    gap: 7,
+    gap: 6,
   },
   instruction: {
     color: C.onCamera,
+    fontFamily: Fonts.display,
     fontSize: 16,
-    lineHeight: 19,
+    lineHeight: 20,
     fontWeight: '700',
+    letterSpacing: -0.16,
     textAlign: 'center',
   },
   hint: {
     color: C.onCameraSecondary,
-    fontSize: 14,
-    lineHeight: 17,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '400',
     textAlign: 'center',
   },
-  rejected: {
-    backgroundColor: C.error,
-    borderRadius: 20,
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: 999,
     paddingHorizontal: 18,
     paddingVertical: 10,
   },
-  rejectedText: {
+  rejected: {
+    backgroundColor: C.error,
+  },
+  found: {
+    backgroundColor: C.onCamera,
+  },
+  foundText: {
+    color: C.text,
+  },
+  pillText: {
     color: C.onCamera,
-    fontSize: 15,
+    fontFamily: Fonts.display,
+    fontSize: 14,
     lineHeight: 18,
     fontWeight: '700',
+    letterSpacing: -0.07,
     textAlign: 'center',
   },
   // `auto` pushes the buttons down; the padding keeps them off the text when space runs short.
   actions: {
     marginTop: 'auto',
     paddingTop: 24,
-    gap: 16,
+    gap: 12,
   },
   overlayButton: {
     flexDirection: 'row',
@@ -270,18 +338,23 @@ const styles = StyleSheet.create({
     gap: 10,
     width: 240,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 4,
     backgroundColor: C.onCameraButton,
     borderWidth: 1,
     borderColor: C.onCameraButtonBorder,
   },
   overlayButtonLabel: {
     color: C.onCamera,
-    fontSize: 15,
+    fontFamily: Fonts.display,
+    fontSize: 14,
     lineHeight: 18,
     fontWeight: '700',
+    letterSpacing: -0.07,
   },
   pressed: {
     opacity: 0.7,
+  },
+  disabled: {
+    opacity: 0.5,
   },
 });

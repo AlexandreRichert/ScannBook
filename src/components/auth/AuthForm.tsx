@@ -1,11 +1,16 @@
+import { StatusBar } from 'expo-status-bar';
+import { SymbolView } from 'expo-symbols';
 import type { PropsWithChildren, ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Button } from '@/components/ui/Button';
-import { MaxContentWidth, Spacing } from '@/constants/theme';
+import { AuthButton } from '@/components/auth/AuthButton';
+import { AuthHero } from '@/components/auth/AuthHero';
+import { AuthShelf } from '@/components/auth/AuthShelf';
+import { FieldError } from '@/components/ui/TextField';
+import { Fonts, Palette } from '@/constants/theme';
+
+const FORM_MAX_WIDTH = 480;
 
 type AuthFormProps = PropsWithChildren<{
   title: string;
@@ -15,6 +20,9 @@ type AuthFormProps = PropsWithChildren<{
   canSubmit: boolean;
   onSubmit: () => void;
   footer?: ReactNode;
+  /** Shows the title in the tomato header of the sign-in screen instead of above the form. */
+  hero?: boolean;
+  back?: { label: string; onPress: () => void };
 }>;
 
 export function AuthForm({
@@ -25,41 +33,146 @@ export function AuthForm({
   canSubmit,
   onSubmit,
   footer,
+  hero = false,
+  back,
   children,
 }: AuthFormProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <ThemedView style={styles.fill}>
-      <SafeAreaView style={styles.fill}>
-        <KeyboardAvoidingView
-          style={styles.fill}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-            <ThemedText type="title">{title}</ThemedText>
-            {subtitle && <ThemedText themeColor="textSecondary">{subtitle}</ThemedText>}
-            {children}
-            {error && (
-              <ThemedText type="small" themeColor="danger" accessibilityRole="alert">
-                {error}
-              </ThemedText>
+    <KeyboardAvoidingView style={styles.screen} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <StatusBar style={hero ? 'light' : 'dark'} />
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        {hero ? (
+          <AuthHero title={title} subtitle={subtitle} />
+        ) : (
+          <View style={[styles.top, { paddingTop: insets.top + 2 }]}>
+            {back ? (
+              <Pressable
+                onPress={back.onPress}
+                accessibilityRole="button"
+                hitSlop={8}
+                style={({ pressed }) => [styles.back, pressed && styles.pressed]}>
+                <SymbolView
+                  name={{ ios: 'chevron.left', android: 'chevron_left', web: 'chevron_left' }}
+                  size={22}
+                  tintColor={Palette.ink}
+                />
+                <Text style={styles.backLabel}>{back.label}</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.backSpacer} />
             )}
-            <Button label={submitLabel} onPress={onSubmit} disabled={!canSubmit} fullWidth />
+          </View>
+        )}
+
+        <View
+          style={[
+            styles.content,
+            hero ? [styles.contentUnderHero, { paddingBottom: insets.bottom + 32 }] : styles.contentUnderTitle,
+          ]}>
+          {!hero && (
+            <View style={styles.heading}>
+              <Text style={styles.title} accessibilityRole="header">
+                {title}
+              </Text>
+              {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+            </View>
+          )}
+          <View style={styles.form}>
+            {children}
+            {error ? <FieldError message={error} alert /> : null}
+          </View>
+          <View style={styles.actions}>
+            <AuthButton label={submitLabel} onPress={onSubmit} disabled={!canSubmit} />
             {footer}
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </ThemedView>
+          </View>
+        </View>
+
+        {!hero && (
+          <View style={styles.shelf}>
+            <AuthShelf />
+          </View>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  fill: { flex: 1 },
-  content: {
+  screen: {
+    flex: 1,
+    backgroundColor: Palette.paper,
+  },
+  scroll: {
     flexGrow: 1,
-    justifyContent: 'center',
-    gap: Spacing.three,
-    padding: Spacing.four,
+  },
+  top: {
+    paddingHorizontal: 14,
+  },
+  back: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 2,
+    height: 40,
+  },
+  backSpacer: {
+    height: 40,
+  },
+  backLabel: {
+    color: Palette.ink,
+    fontFamily: Fonts.body,
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  pressed: {
+    opacity: 0.6,
+  },
+  content: {
     width: '100%',
-    maxWidth: MaxContentWidth,
+    maxWidth: FORM_MAX_WIDTH,
     alignSelf: 'center',
+    paddingHorizontal: 24,
+  },
+  contentUnderHero: {
+    gap: 20,
+    marginTop: 28,
+  },
+  contentUnderTitle: {
+    gap: 22,
+    marginTop: 16,
+  },
+  heading: {
+    gap: 6,
+  },
+  title: {
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: '700',
+    letterSpacing: -1.05,
+  },
+  subtitle: {
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+  },
+  form: {
+    gap: 12,
+  },
+  actions: {
+    alignItems: 'center',
+    gap: 14,
+  },
+  // Pushed to the bottom of the screen, it scrolls away with the form on short screens
+  shelf: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+    paddingTop: 40,
   },
 });

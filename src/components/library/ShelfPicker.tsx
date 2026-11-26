@@ -1,6 +1,7 @@
-import { Pressable, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 
-import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { PressableScale } from '@/components/ui/PressableScale';
+import { Fonts, Palette, ShelfColors } from '@/constants/theme';
 import { SHELF_LABELS, SHELVES, type Shelf } from '@/lib/Shelves';
 
 type ShelfPickerProps = {
@@ -26,17 +27,19 @@ export function ShelfPicker({
   const chips = SHELVES.map((shelf) => {
     const selected = shelf === value;
     return (
-      <Pressable
+      <PressableScale
+        haptic
         key={shelf}
         onPress={() => onChange(shelf)}
         disabled={disabled}
         accessibilityRole="radio"
         accessibilityState={{ checked: selected, disabled }}
-        style={({ pressed }) => [styles.chip, selected && styles.selected, pressed && styles.pressed]}>
+        style={[styles.chip, selected && styles.selected]}>
+        <View style={[styles.dot, { backgroundColor: ShelfColors[shelf] }]} />
         <Text style={[styles.label, selected && styles.selectedLabel]}>
           {counts ? `${SHELF_LABELS[shelf]} · ${counts[shelf]}` : SHELF_LABELS[shelf]}
         </Text>
-      </Pressable>
+      </PressableScale>
     );
   });
 
@@ -67,29 +70,37 @@ const styles = StyleSheet.create({
   },
   scrollRow: {
     gap: 8,
+    paddingVertical: 4,
   },
   chip: {
-    minHeight: 40,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: C.border,
-    backgroundColor: C.surface,
-    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    backgroundColor: Palette.paperRaised,
+    borderWidth: 1,
+    borderColor: Palette.line,
   },
   selected: {
-    borderColor: C.primary,
-    backgroundColor: C.primary,
+    borderColor: Palette.ink,
+    backgroundColor: Palette.ink,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
   label: {
-    color: C.text,
-    fontSize: 15,
-    fontWeight: '600',
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+    letterSpacing: -0.07,
   },
   selectedLabel: {
-    color: C.onPrimary,
-  },
-  pressed: {
-    opacity: 0.7,
+    color: Palette.inkInverse,
   },
 });

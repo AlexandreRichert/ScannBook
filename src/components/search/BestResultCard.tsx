@@ -36,7 +36,14 @@ export function BestResultCard({ book, shelf, onPress }: BestResultCardProps) {
       )}
       style={({ pressed }) => [styles.card, shelf && styles.owned, pressed && styles.pressed]}>
       <View style={styles.tilt}>
-        <BookWithSpine key={book.isbn13} title={book.title} coverUrl={book.coverUrl} width={88} />
+        <BookWithSpine
+          key={book.isbn13}
+          isbn13={book.isbn13}
+          title={book.title}
+          authors={book.authors}
+          coverUrl={book.coverUrl}
+          width={88}
+        />
       </View>
       <View style={styles.text}>
         <Text style={styles.label}>Meilleur résultat</Text>
@@ -75,7 +82,7 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
     paddingRight: 16,
     paddingVertical: 8,
-    borderRadius: 16,
+    borderRadius: 6,
     backgroundColor: C.highlight,
   },
   tilt: {
@@ -110,8 +117,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   owned: {
-    borderWidth: 1.5,
-    borderColor: C.primary,
+    borderWidth: 1,
+    borderColor: C.ownedBorder,
     backgroundColor: C.owned,
   },
   tag: {
