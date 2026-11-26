@@ -17,9 +17,8 @@ const REJECTED_MESSAGE_MS = 3000;
  */
 export default function ScanScreen() {
   const router = useRouter();
-  // TODO(US-01): open the manual ISBN entry, a modal shown over the scanner
-  // (`/isbn`, Figma frame 05). Until it exists, the ISBN test tab stands in.
-  const openManualEntry = () => router.navigate('/isbn-test');
+  // Manual ISBN entry, shown as a modal over the scanner.
+  const openManualEntry = () => router.push('/isbn');
 
   if (Platform.OS === 'web') {
     return (

@@ -10,6 +10,7 @@ export default function AppLayout() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="book/[isbn]" options={{ title: '' }} />
+      <Stack.Screen name="isbn" options={{ presentation: 'modal', headerShown: false }} />
     </Stack>
   );
 }

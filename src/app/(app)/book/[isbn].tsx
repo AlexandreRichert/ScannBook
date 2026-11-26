@@ -62,8 +62,8 @@ function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => vo
   // `navigate` goes back to the tabs already in the stack and switches to the
   // scanner, whether the book was opened from it, from the ISBN tab or by a link.
   const scanAgain = () => router.navigate('/scan');
-  // Until the manual ISBN entry modal exists, the ISBN test tab stands in. It is a full screen, so it replaces the book screen in the stack.
-  const enterIsbn = () => router.navigate('/isbn-test');
+  // Manual ISBN entry, shown as a modal over the book screen.
+  const enterIsbn = () => router.push('/isbn');
 
   switch (state.status) {
     case 'idle':
