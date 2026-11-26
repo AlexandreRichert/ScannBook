@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import type { GoogleBooksError } from '@/hooks/useBookByIsbn';
+import { bookLookupErrorMessage, bookLookupErrorTitle } from '@/lib/BookLookupMessages';
 
 type SymbolName = SymbolViewProps['name'];
 
@@ -40,6 +42,29 @@ export function BookStatus({ icon, tone = 'neutral', title, children, actions }:
 /** Centered secondary text of a `BookStatus`; nest `<StatusText strong>` to emphasize a part. */
 export function StatusText({ children, strong = false }: { children: ReactNode; strong?: boolean }) {
   return <Text style={[styles.body, strong && styles.strong]}>{children}</Text>;
+}
+
+/** A failed Google Books call, with a retry button. */
+export function LookupErrorStatus({ error, onRetry }: { error: GoogleBooksError; onRetry: () => void }) {
+  return (
+    <BookStatus
+      icon={
+        error.kind === 'network'
+          ? { ios: 'wifi.slash', android: 'wifi_off', web: 'wifi_off' }
+          : { ios: 'exclamationmark.triangle', android: 'warning', web: 'warning' }
+      }
+      tone="error"
+      title={bookLookupErrorTitle(error)}
+      actions={
+        <StatusButton
+          label="Réessayer"
+          icon={{ ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' }}
+          onPress={onRetry}
+        />
+      }>
+      <StatusText>{bookLookupErrorMessage(error)}</StatusText>
+    </BookStatus>
+  );
 }
 
 type StatusButtonProps = {

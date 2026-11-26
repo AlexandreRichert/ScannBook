@@ -6,16 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BookSheet } from '@/components/book/BookSheet';
 import { BookSheetSkeleton } from '@/components/book/BookSheetSkeleton';
-import { BookStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
+import { BookStatus, LookupErrorStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
 import { LibraryPanel } from '@/components/library/LibraryPanel';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { MaxContentWidth } from '@/constants/theme';
 import { useBookByIsbn, type BookByIsbnState } from '@/hooks/useBookByIsbn';
-import {
-  bookLookupErrorMessage,
-  bookLookupErrorTitle,
-  invalidIsbnMessage,
-} from '@/lib/BookLookupMessages';
+import { invalidIsbnMessage } from '@/lib/BookLookupMessages';
 
 /**
  * Details of a book, opened from the scanner, the manual entry or a deep link
@@ -94,25 +90,7 @@ function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => vo
         </BookStatus>
       );
     case 'error':
-      return (
-        <BookStatus
-          icon={
-            state.error.kind === 'network'
-              ? { ios: 'wifi.slash', android: 'wifi_off', web: 'wifi_off' }
-              : { ios: 'exclamationmark.triangle', android: 'warning', web: 'warning' }
-          }
-          tone="error"
-          title={bookLookupErrorTitle(state.error)}
-          actions={
-            <StatusButton
-              label="Réessayer"
-              icon={{ ios: 'arrow.clockwise', android: 'refresh', web: 'refresh' }}
-              onPress={onRetry}
-            />
-          }>
-          <StatusText>{bookLookupErrorMessage(state.error)}</StatusText>
-        </BookStatus>
-      );
+      return <LookupErrorStatus error={state.error} onRetry={onRetry} />;
     case 'invalid':
       return (
         <BookStatus
