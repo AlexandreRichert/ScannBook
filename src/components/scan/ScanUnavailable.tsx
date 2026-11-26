@@ -1,10 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BottomTabInset } from '@/constants/theme';
+import { ScanIllustration } from '@/components/scan/ScanIllustration';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { ScanScreenColors as C } from '@/constants/ScanScreenColors';
+import { BottomTabInset, Fonts, Palette } from '@/constants/theme';
 
 type ScanUnavailableProps = {
   icon: SymbolViewProps['name'];
@@ -24,23 +26,23 @@ export function ScanUnavailable({ icon, title, body, primary, onManualEntry, onS
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      style={[
-        styles.screen,
-        { paddingTop: insets.top + 23, paddingBottom: insets.bottom + BottomTabInset + 24 },
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[
+        styles.container,
+        { paddingTop: insets.top + 12, paddingBottom: insets.bottom + BottomTabInset + 24 },
       ]}>
       <StatusBar style="dark" />
       <Text style={styles.screenTitle} accessibilityRole="header">
         Scanner un livre
       </Text>
 
-      {/* Centered when it fits, scrollable when it doesn't (small screen, large text). */}
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.illustration}>
-          <SymbolView name={icon} size={36} tintColor={C.primary} />
+      <View style={styles.content}>
+        <ScanIllustration icon={icon} />
+        <View style={styles.text}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.body}>{body}</Text>
         </View>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.body}>{body}</Text>
 
         <View style={styles.actions}>
           {primary && <ActionButton label={primary.label} onPress={primary.onPress} />}
@@ -59,8 +61,8 @@ export function ScanUnavailable({ icon, title, body, primary, onManualEntry, onS
             onPress={onSearch}
           />
         </View>
-      </ScrollView>
-    </View>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -79,19 +81,15 @@ function ActionButton({ icon, label, hint, variant = 'primary', onPress }: Actio
   const color = isPrimary ? C.onPrimary : C.primary;
 
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityHint={hint}
-      style={({ pressed }) => [
-        styles.button,
-        isPrimary ? styles.primary : styles.secondary,
-        pressed && styles.pressed,
-      ]}>
-      {icon && <SymbolView name={icon} size={18} tintColor={color} />}
+      style={[styles.button, isPrimary ? styles.primary : styles.secondary]}>
+      {icon && <SymbolView name={icon} size={20} tintColor={color} />}
       <Text style={[styles.buttonLabel, { color }]}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -99,75 +97,77 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: C.background,
+  },
+  container: {
+    flexGrow: 1,
     paddingHorizontal: 24,
   },
   screenTitle: {
     color: C.text,
-    fontSize: 17,
-    lineHeight: 40,
+    fontFamily: Fonts.display,
+    fontSize: 22,
+    lineHeight: 28,
     fontWeight: '700',
+    letterSpacing: -0.55,
     textAlign: 'center',
   },
-  scroll: {
-    flex: 1,
-  },
   content: {
-    flexGrow: 1,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 24,
   },
-  illustration: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: C.illustration,
+  text: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
+    gap: 8,
+    maxWidth: 300,
+    marginTop: 31,
   },
   title: {
     color: C.text,
+    fontFamily: Fonts.display,
     fontSize: 22,
-    lineHeight: 27,
+    lineHeight: 28,
     fontWeight: '700',
+    letterSpacing: -0.55,
     textAlign: 'center',
-    marginBottom: 14,
   },
   body: {
     color: C.textSecondary,
+    fontFamily: Fonts.body,
     fontSize: 15,
     lineHeight: 22,
+    fontWeight: '400',
     textAlign: 'center',
   },
   actions: {
     alignSelf: 'stretch',
     gap: 12,
-    marginTop: 39,
+    marginTop: 30,
   },
   button: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    minHeight: 52,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    gap: 8,
+    minHeight: 56,
+    paddingHorizontal: 24,
+    borderRadius: 4,
   },
   primary: {
     backgroundColor: C.primary,
+    experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
   },
   secondary: {
     backgroundColor: C.surface,
-    borderColor: C.primary,
-    borderWidth: 1.5,
+    borderColor: Palette.lineStrong,
+    borderWidth: 1,
   },
   buttonLabel: {
+    fontFamily: Fonts.display,
     fontSize: 16,
-    lineHeight: 19,
+    lineHeight: 20,
     fontWeight: '700',
-  },
-  pressed: {
-    opacity: 0.7,
+    letterSpacing: -0.16,
   },
 });

@@ -15,7 +15,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PressableScale } from '@/components/ui/PressableScale';
 import { IsbnEntryColors as C } from '@/constants/IsbnEntryColors';
+import { Fonts } from '@/constants/theme';
 import { invalidIsbnMessage } from '@/lib/BookLookupMessages';
 import { parseIsbn } from '@/lib/Isbn';
 
@@ -65,97 +67,104 @@ export default function IsbnEntryScreen() {
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       <StatusBar style={Platform.OS === 'ios' ? 'light' : 'dark'} />
-      {Platform.OS === 'ios' && <View style={styles.grabber} />}
 
-      <View style={[styles.header, Platform.OS !== 'ios' && { marginTop: insets.top }]}>
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          hitSlop={8}
-          style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}>
-          <Text style={styles.cancelLabel}>Annuler</Text>
-        </Pressable>
-        <Text style={styles.title} accessibilityRole="header">
-          Saisir un ISBN
-        </Text>
-      </View>
-
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {/* No visible label: the title just above names the only field, and
-            screen readers get it from accessibilityLabel. */}
-        <View style={styles.fieldRow}>
-          <View style={[styles.field, error !== null && styles.fieldError]}>
-            <TextInput
-              ref={inputRef}
-              value={value}
-              onChangeText={change}
-              onSubmitEditing={submit}
-              keyboardType="number-pad"
-              inputMode="numeric"
-              autoFocus
-              autoCorrect={false}
-              autoComplete="off"
-              returnKeyType="search"
-              selectionColor={C.primary}
-              accessibilityLabel="ISBN"
-              accessibilityHint="10 ou 13 chiffres, tirets et espaces ignorés."
-              style={styles.input}
-            />
-            {value !== '' && (
-              <Pressable onPress={clear} accessibilityRole="button" accessibilityLabel="Effacer" hitSlop={8}>
-                <SymbolView
-                  name={{ ios: 'xmark.circle.fill', android: 'cancel', web: 'cancel' }}
-                  size={20}
-                  tintColor={C.muted}
-                />
-              </Pressable>
-            )}
-          </View>
+      <ScrollView
+        contentContainerStyle={[styles.content, Platform.OS !== 'ios' && { paddingTop: insets.top + 16 }]}
+        keyboardShouldPersistTaps="handled">
+        <View style={styles.header}>
+          {Platform.OS === 'ios' && <View style={styles.grabber} />}
           <Pressable
-            onPress={addX}
-            disabled={!xEnabled}
+            onPress={() => router.back()}
             accessibilityRole="button"
-            accessibilityLabel="Ajouter X"
-            accessibilityHint="Dernier caractère d’un ISBN-10"
-            accessibilityState={{ disabled: !xEnabled }}
-            style={({ pressed }) => [
-              styles.xKey,
-              !xEnabled && styles.disabled,
-              pressed && styles.pressed,
-            ]}>
-            <Text style={styles.xLabel}>X</Text>
+            hitSlop={8}
+            style={({ pressed }) => [styles.cancel, pressed && styles.pressed]}>
+            <Text style={styles.cancelLabel}>Annuler</Text>
           </Pressable>
+          <Text style={styles.title} accessibilityRole="header">
+            Saisir un ISBN
+          </Text>
         </View>
 
-        {error !== null && (
-          <View style={styles.error} accessibilityLiveRegion="polite">
-            <SymbolView
-              name={{ ios: 'exclamationmark.circle', android: 'error', web: 'error' }}
-              size={14}
-              tintColor={C.error}
-            />
-            <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.fieldGroup}>
+          {/* The input carries its own accessibilityLabel: the visible label is skipped. */}
+          <Text style={styles.label} accessibilityElementsHidden importantForAccessibility="no">
+            ISBN
+          </Text>
+          <View style={styles.fieldRow}>
+            <View style={[styles.field, error !== null && styles.fieldError]}>
+              <TextInput
+                ref={inputRef}
+                value={value}
+                onChangeText={change}
+                onSubmitEditing={submit}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                autoFocus
+                autoCorrect={false}
+                autoComplete="off"
+                returnKeyType="search"
+                selectionColor={C.primary}
+                accessibilityLabel="ISBN"
+                accessibilityHint="ISBN-10 ou ISBN-13. Tirets et espaces ignorés."
+                style={styles.input}
+              />
+              {value !== '' && (
+                <Pressable onPress={clear} accessibilityRole="button" accessibilityLabel="Effacer" hitSlop={10}>
+                  <SymbolView
+                    name={{ ios: 'xmark', android: 'close', web: 'close' }}
+                    size={18}
+                    tintColor={C.textSecondary}
+                  />
+                </Pressable>
+              )}
+            </View>
+            <PressableScale
+              onPress={addX}
+              disabled={!xEnabled}
+              accessibilityRole="button"
+              accessibilityLabel="Ajouter X"
+              accessibilityHint="Dernier caractère d’un ISBN-10"
+              accessibilityState={{ disabled: !xEnabled }}
+              style={[styles.xKey, !xEnabled && styles.disabled]}>
+              <Text style={styles.xLabel}>X</Text>
+            </PressableScale>
           </View>
-        )}
-        <Text style={styles.help}>10 ou 13 chiffres, tirets et espaces ignorés.</Text>
 
-        <Pressable
+          {error !== null && (
+            <View style={styles.error} accessibilityLiveRegion="polite">
+              <SymbolView
+                name={{ ios: 'exclamationmark.circle', android: 'error', web: 'error' }}
+                size={16}
+                tintColor={C.error}
+              />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+          <Text style={styles.help}>ISBN-10 ou ISBN-13. Tirets et espaces ignorés.</Text>
+        </View>
+
+        <PressableScale
           onPress={submit}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.submit, pressed && styles.pressed]}>
-          <Text style={styles.submitLabel}>Rechercher</Text>
-        </Pressable>
+          style={styles.submit}>
+          <SymbolView
+            name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+            size={20}
+            tintColor={C.onPrimary}
+          />
+          <Text style={styles.submitLabel}>Rechercher le livre</Text>
+        </PressableScale>
 
         <View style={styles.tip}>
           <View style={styles.tipIcon}>
             <SymbolView
               name={{ ios: 'book', android: 'menu_book', web: 'menu_book' }}
               size={18}
-              tintColor={C.primary}
+              tintColor={C.accent}
             />
           </View>
           <View style={styles.tipText}>
-            <Text style={styles.tipTitle}>Où le trouver ?</Text>
+            <Text style={styles.tipTitle}>Où trouver l’ISBN ?</Text>
             <Text style={styles.tipBody}>
               Au dos du livre, au-dessus du code-barres, ou sur la page de copyright.
             </Text>
@@ -171,40 +180,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: C.background,
   },
+  content: {
+    gap: 20,
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 24,
+  },
+  header: {
+    gap: 12,
+  },
   grabber: {
     alignSelf: 'center',
     width: 36,
     height: 5,
     borderRadius: 3,
-    marginTop: 7,
-    backgroundColor: C.muted,
-  },
-  header: {
-    height: 52,
-    marginTop: 8,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    backgroundColor: C.grabber,
   },
   cancel: {
-    position: 'absolute',
-    left: 20,
+    alignSelf: 'flex-start',
   },
   cancelLabel: {
-    color: C.primary,
-    fontSize: 17,
-    lineHeight: 21,
+    color: C.textSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
   },
   title: {
     color: C.text,
-    fontSize: 17,
-    lineHeight: 21,
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
     fontWeight: '700',
-    textAlign: 'center',
+    letterSpacing: -1.05,
   },
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 24,
+  fieldGroup: {
+    gap: 7,
+  },
+  label: {
+    color: C.textSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: '500',
   },
   fieldRow: {
     flexDirection: 'row',
@@ -214,10 +232,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    height: 54,
-    paddingHorizontal: 16,
-    borderRadius: 12,
+    gap: 12,
+    height: 58,
+    paddingHorizontal: 18,
+    borderRadius: 4,
     borderWidth: 1.5,
     borderColor: C.border,
     backgroundColor: C.surface,
@@ -229,21 +247,26 @@ const styles = StyleSheet.create({
     flex: 1,
     height: '100%',
     color: C.text,
-    fontSize: 18,
+    fontFamily: Fonts.display,
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   xKey: {
-    width: 54,
-    height: 54,
-    borderRadius: 12,
+    width: 58,
+    height: 58,
+    borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: C.primary,
+    borderColor: C.border,
     backgroundColor: C.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   xLabel: {
-    color: C.primary,
-    fontSize: 18,
+    color: C.text,
+    fontFamily: Fonts.display,
+    fontSize: 20,
+    lineHeight: 24,
     fontWeight: '700',
   },
   disabled: {
@@ -251,69 +274,74 @@ const styles = StyleSheet.create({
   },
   error: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 7,
-    marginTop: 12,
+    alignItems: 'flex-start',
+    gap: 8,
   },
   errorText: {
     flex: 1,
     color: C.error,
+    fontFamily: Fonts.body,
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 18,
+    fontWeight: '400',
   },
   help: {
-    color: C.textTertiary,
+    color: C.textSecondary,
+    fontFamily: Fonts.body,
     fontSize: 13,
-    lineHeight: 16,
-    marginTop: 10,
+    lineHeight: 18,
+    fontWeight: '400',
   },
   submit: {
-    minHeight: 52,
-    marginTop: 21,
-    borderRadius: 12,
+    flexDirection: 'row',
+    gap: 8,
+    height: 56,
+    paddingHorizontal: 24,
+    borderRadius: 4,
     backgroundColor: C.primary,
+    experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   submitLabel: {
     color: C.onPrimary,
+    fontFamily: Fonts.display,
     fontSize: 16,
-    lineHeight: 19,
+    lineHeight: 20,
     fontWeight: '700',
+    letterSpacing: -0.16,
   },
   tip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginTop: 24,
-    padding: 14,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: C.border,
-    backgroundColor: C.surface,
   },
   tipIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: C.illustration,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: C.tint,
     alignItems: 'center',
     justifyContent: 'center',
   },
   tipText: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   tipTitle: {
     color: C.text,
+    fontFamily: Fonts.display,
     fontSize: 14,
-    lineHeight: 17,
+    lineHeight: 18,
     fontWeight: '700',
+    letterSpacing: -0.07,
   },
   tipBody: {
     color: C.textSecondary,
+    fontFamily: Fonts.body,
     fontSize: 13,
     lineHeight: 18,
+    fontWeight: '400',
   },
   pressed: {
     opacity: 0.7,
