@@ -24,4 +24,6 @@ export const BookScreenColors = {
   /** Search best result card (« Maquettes v2 », frame 06). */
   highlight: '#E9E4DB',
   accent: '#C03D1D',
+  /** Search result already in the library: background, with a `primary` border. */
+  owned: '#E4EEEA',
 } as const;

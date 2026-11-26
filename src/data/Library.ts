@@ -26,6 +26,14 @@ export async function fetchLibraryEntry(isbn13: string): Promise<LibraryEntry | 
   return data;
 }
 
+/** Shelf of each of these books that the current user owns; books they don't own are absent. */
+export async function fetchShelvesByIsbn(isbn13s: string[]): Promise<Map<string, Shelf>> {
+  if (isbn13s.length === 0) return new Map();
+  const { data, error } = await supabase.from('books').select('isbn13, status').in('isbn13', isbn13s);
+  if (error) throw error;
+  return new Map(data.map((row) => [row.isbn13, row.status]));
+}
+
 export type LibraryBook = {
   id: string;
   isbn13: string;
