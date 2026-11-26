@@ -109,35 +109,29 @@ function CameraScanner({ onManualEntry }: { onManualEntry: () => void }) {
     );
   }
 
-  // Never asked: explain first, the system prompt only comes on tap.
-  if (permission.status === 'undetermined') {
-    return (
-      <ScanUnavailable
-        icon={{ ios: 'camera', android: 'photo_camera', web: 'photo_camera' }}
-        title="Scanner tes livres"
-        body="ScannBook utilise la caméra pour lire le code-barres de tes livres et les retrouver sans rien saisir."
-        primary={{ label: 'Autoriser la caméra', onPress: () => void requestPermission() }}
-        onManualEntry={onManualEntry}
-      />
-    );
-  }
-
-  // Denied: ask again while the system allows it, otherwise send to the settings.
   if (!permission.granted) {
+    // The system can still show its prompt: never asked, or denied once on
+    // Android (with Expo Go, the permission is Expo Go's, so it may already
+    // be denied on the first visit). Explain first, the prompt only comes on tap.
+    if (permission.canAskAgain) {
+      return (
+        <ScanUnavailable
+          icon={{ ios: 'camera', android: 'photo_camera', web: 'photo_camera' }}
+          title="Scanner tes livres"
+          body="ScannBook utilise la caméra pour lire le code-barres de tes livres et les retrouver sans rien saisir."
+          primary={{ label: 'Autoriser la caméra', onPress: () => void requestPermission() }}
+          onManualEntry={onManualEntry}
+        />
+      );
+    }
+
+    // The system will not ask again: only the settings can grant it now.
     return (
       <ScanUnavailable
         icon={{ ios: 'video.slash', android: 'no_photography', web: 'no_photography' }}
         title="Accès à la caméra refusé"
-        body={
-          permission.canAskAgain
-            ? 'ScannBook a besoin de la caméra pour lire le code-barres de tes livres.'
-            : 'ScannBook a besoin de la caméra pour lire le code-barres de tes livres. Autorise-la dans les réglages du téléphone.'
-        }
-        primary={
-          permission.canAskAgain
-            ? { label: 'Autoriser la caméra', onPress: () => void requestPermission() }
-            : { label: 'Ouvrir les réglages', onPress: () => void Linking.openSettings() }
-        }
+        body="ScannBook a besoin de la caméra pour lire le code-barres de tes livres. Autorise-la dans les réglages du téléphone."
+        primary={{ label: 'Ouvrir les réglages', onPress: () => void Linking.openSettings() }}
         onManualEntry={onManualEntry}
       />
     );
