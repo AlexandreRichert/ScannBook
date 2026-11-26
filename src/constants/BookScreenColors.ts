@@ -21,4 +21,5 @@ export const BookScreenColors = {
   accent: Palette.accentStrong,
   /** Search result already in the library: background, with a `primary` border. */
   owned: '#E4EEEA',
+  ownedBorder: '#B9CFC6',
 } as const;

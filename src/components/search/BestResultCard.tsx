@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     paddingLeft: 14,
     paddingRight: 16,
     paddingVertical: 8,
-    borderRadius: 16,
+    borderRadius: 6,
     backgroundColor: C.highlight,
   },
   tilt: {
@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   owned: {
-    borderWidth: 1.5,
-    borderColor: C.primary,
+    borderWidth: 1,
+    borderColor: C.ownedBorder,
     backgroundColor: C.owned,
   },
   tag: {

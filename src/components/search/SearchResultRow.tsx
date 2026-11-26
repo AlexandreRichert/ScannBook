@@ -24,7 +24,7 @@ export function SearchResultRow({ book, shelf, onPress }: SearchResultRowProps) 
       accessibilityRole="button"
       accessibilityLabel={joinDetails(book.title, details, shelf && inLibraryLabel(shelf))}
       style={({ pressed }) => [styles.row, shelf && styles.owned, pressed && styles.pressed]}>
-      <View style={styles.cover}>
+      <View>
         <BookCover
           key={book.isbn13}
           isbn13={book.isbn13}
@@ -63,9 +63,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: C.border,
   },
-  cover: {
-    boxShadow: '0 1px 2px rgba(26, 20, 15, 0.2), 0 6px 14px rgba(26, 20, 15, 0.18)',
-  },
   text: {
     flex: 1,
     gap: 4,
@@ -90,9 +87,9 @@ const styles = StyleSheet.create({
     marginHorizontal: -10,
     marginVertical: 4,
     paddingHorizontal: 10,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    borderColor: C.primary,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: C.ownedBorder,
     backgroundColor: C.owned,
   },
   pressed: {

@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 96,
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: Palette.lineStrong,
     borderRadius: 2,

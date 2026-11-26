@@ -104,8 +104,8 @@ const styles = StyleSheet.create({
     height: 52,
     paddingHorizontal: 16,
     borderRadius: 4,
-    // Always 1.5 wide so the error border does not shift the content
-    borderWidth: 1.5,
+    // Same width in every state so the error border does not shift the content
+    borderWidth: 1,
     backgroundColor: Palette.paperRaised,
   },
   zoneDefault: {

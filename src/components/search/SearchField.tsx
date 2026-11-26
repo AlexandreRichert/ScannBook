@@ -50,9 +50,10 @@ const styles = StyleSheet.create({
     gap: 10,
     height: 52,
     paddingHorizontal: 18,
-    borderRadius: 26,
+    borderRadius: 4,
     backgroundColor: C.surface,
-    boxShadow: '0 1px 2px rgba(26, 20, 15, 0.05), 0 6px 14px rgba(26, 20, 15, 0.05)',
+    borderWidth: 1,
+    borderColor: C.border,
   },
   input: {
     flex: 1,

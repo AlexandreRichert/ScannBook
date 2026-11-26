@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: 'transparent',
     backgroundColor: Palette.accent,
     experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',

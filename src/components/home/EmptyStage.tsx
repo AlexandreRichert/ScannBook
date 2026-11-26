@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   outline: {
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: Palette.lineStrong,
     borderRadius: 3,

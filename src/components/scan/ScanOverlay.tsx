@@ -22,7 +22,7 @@ const FRAME_RADIUS = 12;
 const CORNER_SIZE = 36;
 // The line sweeps between these insets so it never touches the corner strokes
 const LINE_INSET = 18;
-const CORNER_STROKE = 4;
+const CORNER_STROKE = 3;
 const CORNER_RADIUS = FRAME_RADIUS + CORNER_STROKE / 2;
 
 type ScanOverlayProps = {

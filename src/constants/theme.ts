@@ -15,7 +15,8 @@ export const Palette = {
   paper: '#F6F3EE',
   paperRaised: '#FFFFFF',
   paperSunken: '#E9E4DB',
-  ink: '#141414',
+  // Warm charcoal rather than near black: softer on the paper tones, still 14:1 on paper
+  ink: '#2A2622',
   inkSecondary: '#5C5A56',
   // Darker than the Figma #726E68, which falls under 4.5:1 on the sunken and wall surfaces
   inkTertiary: '#67635D',

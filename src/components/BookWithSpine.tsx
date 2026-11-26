@@ -20,7 +20,7 @@ export function BookWithSpine({ isbn13, title, authors, coverUrl, width }: BookW
   const height = width * 1.5;
 
   return (
-    <View style={[styles.book, { width: width + SPINE_WIDTH - SPINE_OVERLAP, height }]}>
+    <View style={{ width: width + SPINE_WIDTH - SPINE_OVERLAP, height }}>
       <View style={styles.spine}>
         <View style={[styles.band, { top: 11 }]} />
         <View style={[styles.band, { bottom: 11 }]} />
@@ -41,10 +41,6 @@ export function BookWithSpine({ isbn13, title, authors, coverUrl, width }: BookW
 }
 
 const styles = StyleSheet.create({
-  book: {
-    boxShadow:
-      '0 2px 4px rgba(26, 20, 15, 0.2), 0 14px 28px rgba(26, 20, 15, 0.22), 0 30px 50px rgba(26, 20, 15, 0.14)',
-  },
   spine: {
     position: 'absolute',
     top: 0,
