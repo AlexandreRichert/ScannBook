@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ReadingStatsCard } from '@/components/profile/ReadingStatsCard';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Button } from '@/components/ui/Button';
@@ -15,6 +16,7 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.content}>
         <ThemedText type="title">Profil</ThemedText>
         <ThemedText themeColor="textSecondary">Connecté avec {session?.user.email}</ThemedText>
+        <ReadingStatsCard />
         <Button label="Se déconnecter" onPress={signOut} fullWidth />
       </SafeAreaView>
     </ThemedView>
