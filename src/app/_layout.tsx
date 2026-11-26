@@ -3,11 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import { searchBooks } from '@/data/GoogleBooks';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
-
-// TEMP: test searchBooks from the browser console — remove before commit
-if (__DEV__) Object.assign(globalThis, { searchBooks });
 
 SplashScreen.preventAutoHideAsync();
 
