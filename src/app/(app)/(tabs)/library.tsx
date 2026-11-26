@@ -1,132 +1,110 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BookStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
-import { LibraryBookRow } from '@/components/library/LibraryBookRow';
-import { ShelfPicker } from '@/components/library/ShelfPicker';
-import { SortPicker } from '@/components/library/SortPicker';
-import { BookScreenColors as C } from '@/constants/BookScreenColors';
-import { BottomTabInset, MaxContentWidth } from '@/constants/theme';
+import { Bookcase } from '@/components/library/Bookcase';
+import { BottomTabInset, Fonts, MaxContentWidth, Palette } from '@/constants/theme';
 import { useLibrary } from '@/hooks/useLibrary';
-import { useLibrarySort } from '@/hooks/useLibrarySort';
-import { sortBooks } from '@/lib/LibrarySort';
-import { countByShelf, type Shelf } from '@/lib/Shelves';
+import type { Shelf } from '@/lib/Shelves';
 
+/** Library tab: every shelf at a glance as one bookcase (Figma frame 15), each cubby opening its shelf. */
 export default function LibraryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state, retry } = useLibrary();
-  const [shelf, setShelf] = useState<Shelf>('to_read');
-  const [sort, setSort] = useLibrarySort();
 
-  const books = useMemo(
-    () => (state.status === 'success' ? sortBooks(state.books.filter((book) => book.status === shelf), sort) : []),
-    [state, shelf, sort],
-  );
-
-  const scan = () => router.navigate('/scan');
+  const openShelf = (shelf: Shelf) => router.push({ pathname: '/shelf/[shelf]', params: { shelf } });
+  const count = state.status === 'success' ? state.books.length : null;
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 16 }]}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + BottomTabInset + 24 },
+      ]}>
       <StatusBar style="dark" />
-      <View style={styles.header}>
+      <View style={styles.heading}>
         <Text style={styles.title} accessibilityRole="header">
-          Ma bibliothèque
+          Mes piles
         </Text>
-        {state.status === 'success' && (
-          <View style={styles.filters}>
-            <ShelfPicker
-              value={shelf}
-              onChange={setShelf}
-              counts={countByShelf(state.books)}
-              scrollable
-              contentContainerStyle={styles.filtersContent}
-            />
-          </View>
+        {count !== null && (
+          <Text style={styles.count}>
+            {count} {count > 1 ? 'livres rangés' : 'livre rangé'}
+          </Text>
         )}
-        {state.status === 'success' && <SortPicker value={sort} onChange={setSort} />}
       </View>
 
       {state.status === 'loading' && (
-        <ActivityIndicator style={styles.fill} color={C.primary} accessibilityLabel="Chargement de ta bibliothèque" />
+        <ActivityIndicator style={styles.status} color={Palette.ink} accessibilityLabel="Chargement de ta bibliothèque" />
       )}
-
       {state.status === 'error' && (
-        <View style={[styles.fill, styles.centered]}>
-          <BookStatus
-            icon={{ ios: 'wifi.slash', android: 'wifi_off', web: 'wifi_off' }}
-            tone="error"
-            title="Bibliothèque indisponible"
-            actions={<StatusButton label="Réessayer" onPress={retry} />}>
-            <StatusText>Vérifie ta connexion et réessaie.</StatusText>
-          </BookStatus>
+        <View style={styles.status}>
+          <Text style={styles.errorText}>Bibliothèque indisponible. Vérifie ta connexion.</Text>
+          <Pressable onPress={retry} accessibilityRole="button" hitSlop={8}>
+            <Text style={styles.retry}>Réessayer</Text>
+          </Pressable>
         </View>
       )}
-
       {state.status === 'success' && (
-        <FlatList
-          style={styles.fill}
-          data={books}
-          keyExtractor={(book) => book.id}
-          renderItem={({ item }) => <LibraryBookRow book={item} />}
-          contentContainerStyle={[
-            styles.list,
-            { paddingBottom: insets.bottom + BottomTabInset + 24 },
-          ]}
-          ListEmptyComponent={
-            <BookStatus
-              icon={{ ios: 'books.vertical', android: 'library_books', web: 'library_books' }}
-              title="Aucun livre ici"
-              actions={<StatusButton label="Scanner un livre" onPress={scan} />}
-            />
-          }
-        />
+        <Animated.View entering={FadeIn.duration(250)}>
+          <Bookcase books={state.books} onOpenShelf={openShelf} />
+        </Animated.View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: C.background,
+    backgroundColor: Palette.paper,
   },
-  header: {
+  content: {
+    gap: 28,
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     paddingHorizontal: 20,
-    gap: 16,
-    marginBottom: 16,
+  },
+  heading: {
+    gap: 4,
+    paddingHorizontal: 4,
   },
   title: {
-    color: C.text,
-    fontSize: 28,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 36,
     fontWeight: '700',
+    letterSpacing: -1.05,
   },
-    // Cancels the header padding so the row scrolls edge to edge, then puts it back inside the row
-  filters: {
-    marginHorizontal: -20,
+  count: {
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: '500',
   },
-  filtersContent: {
-    paddingHorizontal: 20,
+  status: {
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 48,
   },
-  fill: {
-    flex: 1,
+  errorText: {
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 16,
+    textAlign: 'center',
   },
-  centered: {
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  list: {
-    width: '100%',
-    maxWidth: MaxContentWidth,
-    alignSelf: 'center',
-    paddingHorizontal: 20,
-    gap: 10,
-    flexGrow: 1,
+  retry: {
+    color: Palette.accentStrong,
+    fontFamily: Fonts.display,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
   },
 });
