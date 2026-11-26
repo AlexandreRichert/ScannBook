@@ -5,6 +5,7 @@ import {
     fetchLibraryEntry,
     libraryErrorMessage,
     moveToShelf,
+    removeFromLibrary,
     type LibraryEntry,
 } from '@/data/Library';
 import type { Shelf } from '@/lib/Shelves';
@@ -67,5 +68,17 @@ export function useLibraryEntry(isbn13: string) {
     [state],
   );
 
-  return { state, reload, add, move };
+    /** Resolves to a French error message, or null on success. */
+  const remove = useCallback(async () => {
+    if (state.status !== 'present') return null;
+    try {
+      await removeFromLibrary(state.entry.id);
+      setState({ status: 'absent' });
+      return null;
+    } catch (error) {
+      return libraryErrorMessage(error);
+    }
+  }, [state]);
+
+  return { state, reload, add, move, remove };
 }
