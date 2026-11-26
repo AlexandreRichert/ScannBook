@@ -21,4 +21,7 @@ export const BookScreenColors = {
   neutralIllustration: '#EFEBE4',
   errorIllustration: '#FEF3F2',
   error: '#B42318',
+  /** Search best result card (« Maquettes v2 », frame 06). */
+  highlight: '#E9E4DB',
+  accent: '#C03D1D',
 } as const;
