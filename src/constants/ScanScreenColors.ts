@@ -16,9 +16,14 @@ export const ScanScreenColors = {
   /** Darkens the camera feed around the viewfinder. */
   veil: 'rgba(0, 0, 0, 0.58)',
   onCamera: '#FFFFFF',
-  onCameraSecondary: 'rgba(255, 255, 255, 0.72)',
-  /** Torch button and manual entry pill over the camera. */
+  /** 4.7:1 on the veil over a white page (WCAG AA). */
+  onCameraSecondary: 'rgba(255, 255, 255, 0.9)',
+  /** Torch button: an icon, 3.8:1 at worst (3:1 needed). */
   onCameraControl: 'rgba(255, 255, 255, 0.16)',
+  /** Text buttons: dark so white text stays at 13:1 even over a bright scene. */
+  onCameraButton: 'rgba(28, 25, 23, 0.72)',
+  /** Keeps the dark button visible over a dark scene. */
+  onCameraButtonBorder: 'rgba(255, 255, 255, 0.45)',
   scanLine: '#4ADE80',
   error: 'rgba(180, 35, 24, 0.92)',
 } as const;
