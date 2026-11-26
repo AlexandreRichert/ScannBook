@@ -21,7 +21,9 @@ npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+Exception for dev dependencies in this project (pnpm 12): `npx expo install <package> -- --dev` saves the package under `dependencies` and unlinks the runtime dependencies from `node_modules`. Install dev dependencies with `pnpm add -D <package>@<version>` instead, using the version `expo install` would pick, then check it with `pnpm expo install --check`.
+
+Run lint, typecheck and `pnpm test` before declaring any task done.
 
 ## Navigation & Routing
 

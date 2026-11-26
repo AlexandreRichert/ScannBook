@@ -1,0 +1,6 @@
+# @parcel/watcher (pulled in by Jest) loads a prebuilt binary. Its install
+# script only runs node-gyp when npm_config_build_from_source=true, so
+# denying it changes nothing at runtime; it only stops pnpm 12 from failing
+# `pnpm install` with ERR_PNPM_IGNORED_BUILDS.
+allowBuilds:
+  '@parcel/watcher': false
