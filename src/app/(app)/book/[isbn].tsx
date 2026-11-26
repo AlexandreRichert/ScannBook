@@ -59,7 +59,7 @@ function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => vo
   const router = useRouter();
 
   // `navigate` goes back to the tabs already in the stack and switches to the
-  // scanner, whether the book was opened from it, from the ISBN tab or by a link.
+  // scanner, whether the book was opened from it, from the manual entry or by a link.
   const scanAgain = () => router.navigate('/scan');
   // Manual ISBN entry, shown as a modal over the book screen.
   const enterIsbn = () => router.push('/isbn');
