@@ -1,15 +1,18 @@
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BookStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
 import { LibraryBookRow } from '@/components/library/LibraryBookRow';
 import { ShelfPicker } from '@/components/library/ShelfPicker';
+import { SortPicker } from '@/components/library/SortPicker';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { BottomTabInset, MaxContentWidth } from '@/constants/theme';
 import { useLibrary } from '@/hooks/useLibrary';
+import { useLibrarySort } from '@/hooks/useLibrarySort';
+import { sortBooks } from '@/lib/LibrarySort';
 import { countByShelf, type Shelf } from '@/lib/Shelves';
 
 export default function LibraryScreen() {
@@ -17,6 +20,12 @@ export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
   const { state, retry } = useLibrary();
   const [shelf, setShelf] = useState<Shelf>('to_read');
+  const [sort, setSort] = useLibrarySort();
+
+  const books = useMemo(
+    () => (state.status === 'success' ? sortBooks(state.books.filter((book) => book.status === shelf), sort) : []),
+    [state, shelf, sort],
+  );
 
   const scan = () => router.navigate('/scan');
 
@@ -38,6 +47,7 @@ export default function LibraryScreen() {
             />
           </View>
         )}
+        {state.status === 'success' && <SortPicker value={sort} onChange={setSort} />}
       </View>
 
       {state.status === 'loading' && (
@@ -59,7 +69,7 @@ export default function LibraryScreen() {
       {state.status === 'success' && (
         <FlatList
           style={styles.fill}
-          data={state.books.filter((book) => book.status === shelf)}
+          data={books}
           keyExtractor={(book) => book.id}
           renderItem={({ item }) => <LibraryBookRow book={item} />}
           contentContainerStyle={[
