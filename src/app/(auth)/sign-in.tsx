@@ -59,6 +59,9 @@ export default function SignInScreen() {
         returnKeyType="go"
         onSubmitEditing={handleSubmit}
       />
+      <Link href="/forgot-password">
+        <ThemedText type="linkPrimary">Mot de passe oublié ?</ThemedText>
+      </Link>
     </AuthForm>
   );
 }

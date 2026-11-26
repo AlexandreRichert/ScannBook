@@ -19,14 +19,15 @@ export default function RootLayout() {
 }
 
 function RootNavigator() {
-  const { session, isLoading } = useAuth();
+  const { session, isLoading, isRecovering } = useAuth();
+  const isSignedIn = !!session && !isRecovering;
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!!session} redirectTo="/sign-in">
+        <Stack.Protected guard={isSignedIn} redirectTo="/sign-in">
           <Stack.Screen name="(app)" />
         </Stack.Protected>
-        <Stack.Protected guard={!session}>
+        <Stack.Protected guard={!isSignedIn}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
       </Stack>
