@@ -33,13 +33,14 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | -------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------- |
 | Platform             | React Native (iOS + Android, a single codebase)                    | [0001](docs/adr/0001-adopt-react-native.md)                   |
 | Framework            | Expo SDK 58, tested on a phone with Expo Go                        | [0001](docs/adr/0001-adopt-react-native.md)                   |
-| Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack               | —                                                             |
+| Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack               | -                                                             |
 | Language             | Strict TypeScript                                                  | [0001](docs/adr/0001-adopt-react-native.md)                   |
 | Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security   | [0003](docs/adr/0003-library-supabase.md)                     |
 | Book data            | Google Books API v1 (`fetch` + adapter)                            | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
 | Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)            | -                                                             |
 | Password reset       | 6-digit email code, sent through custom SMTP (project Gmail)       | [0004](docs/adr/0004-password-reset-with-email-code.md)       |
 | Reading dates        | Set automatically when a book changes shelf                        | [0005](docs/adr/0005-reading-dates-follow-the-shelf.md)       |
+| Date picker          | `@expo/ui/community/datetime-picker` (included in Expo Go)         | -                                                             |
 | Book search          | One Google Books request, local relevance scoring, in-memory cache | [0006](docs/adr/0006-search-relevance-scoring.md)             |
 
 All recorded decisions are listed in [docs/adr/](docs/adr/).
@@ -80,7 +81,7 @@ Then fill in the three variables in `.env`:
 
 ### Database
 
-The schema (`books` table and RLS policies) will be versioned in `supabase/schema.sql`. To create it, run that file in the **SQL Editor** of your Supabase project.
+The schema (`books` table, constraints and RLS policies) is versioned in [`supabase/schema.sql`](supabase/schema.sql). To create it, run that file in the **SQL Editor** of your Supabase project.
 
 ### Run the app
 
@@ -106,65 +107,75 @@ Variables prefixed with `EXPO_PUBLIC_` are **embedded in the app bundle**: anyon
 - **The Supabase _anon_ key** is meant to be public. Data is protected by **Row Level Security**: every row in `books` carries its owner's `user_id`, and Postgres rejects any read or write from another account. The app itself never filters by user.
 - **The Supabase `service_role` key** is never used in the app.
 
-Dependencies flow in one direction only, from routes to data. Each external service sits behind a single file in `src/data/`, and `src/lib/` (pure business logic) depends on nothing.
+## Architecture
+
+Dependencies flow in one direction only, from routes to data. Each external service sits behind a single file in `src/data/`, and `src/lib/` holds the business logic (ISBN checks, shelf and date rules, sorting, validation, error messages) without ever calling a service.
 
 ```mermaid
 flowchart LR
-  subgraph Routes["src/app — routes"]
-    Auth["(auth)<br/>sign-in, sign-up"]
-    Tabs["(app)/(tabs)<br/>Library, Scan, Search"]
-    Detail["(app)/book/[id]"]
+  subgraph Routes["src/app: routes"]
+    Auth["(auth)<br/>sign-in, sign-up,<br/>forgot and reset password"]
+    Tabs["(app)/(tabs)<br/>Home, Library, Scan, Profile"]
+    Detail["(app)/book/[isbn]<br/>(app)/isbn"]
   end
   subgraph UI["src/components"]
-    Cards["BookCard, StatusPicker,<br/>Cover, EmptyState"]
+    Book["book/<br/>BookSheet, BookStatus"]
+    Shelf["library/<br/>ShelfCard, ShelfPicker,<br/>ReadingDateField, SortPicker"]
+    Other["auth/, scan/, profile/, ui/"]
   end
   subgraph Hooks["src/hooks"]
     HA["useAuth<br/>(AuthProvider)"]
-    H1["useBookLookup<br/>useBookSearch"]
-    H2["useLibrary<br/>(LibraryProvider)"]
+    HB["useBookByIsbn<br/>useBookSearch"]
+    HL["useLibrary, useLibraryEntry,<br/>useReadingStats"]
   end
   subgraph Data["src/data"]
-    SB["supabase.ts<br/>client"]
-    GB["google-books.ts<br/>+ adapter"]
-    Repo["library-repository.ts"]
+    SB["Supabase.ts<br/>client"]
+    GB["GoogleBooks.ts<br/>+ GoogleBooksAdapter.ts"]
+    Repo["Library.ts<br/>ReadingStats.ts"]
   end
-  subgraph Lib["src/lib — pure logic"]
-    Isbn["isbn.ts"]
-    Status["status.ts"]
+  subgraph Lib["src/lib: business logic"]
+    Isbn["Isbn.ts"]
+    Shelves["Shelves.ts<br/>LibrarySort.ts"]
+    Rules["validation,<br/>error messages"]
   end
   Routes --> UI
   Routes --> Hooks
   HA --> SB
-  H2 --> Repo
+  HL --> Repo
   Repo --> SB
-  H1 --> GB
+  HB --> GB
   GB --> API[(Google Books)]
   SB --> Cloud[(Supabase<br/>Auth + Postgres)]
   Hooks --> Lib
   Data --> Lib
 ```
 
-Target structure (the Expo template code will be replaced over the next PRs):
+Project structure:
 
 ```text
 src/
   app/                      # Expo Router routes
-    _layout.tsx             # AuthProvider + redirect based on session
-    (auth)/                 # sign-in, sign-up
+    _layout.tsx             # AuthProvider + guards based on the session
+    (auth)/                 # sign-in, sign-up, forgot-password, reset-password
     (app)/
-      _layout.tsx           # Stack + LibraryProvider
-      (tabs)/               # Library, Scan, Search
-      book/[id].tsx         # book details
+      _layout.tsx           # Stack above the tabs
+      (tabs)/               # index (Home), library, scan, profile
+      book/[isbn].tsx       # book details, shelf, progress and reading dates
       isbn.tsx              # manual ISBN entry (modal)
   components/
-    ui/                     # Button, TextField, EmptyState, ErrorState, Loader
-    book/                   # BookCard, Cover, StatusPicker, ProgressBar
-  data/                     # supabase.ts, google-books.ts, library-repository.ts
-  hooks/                    # use-auth, use-book-lookup, use-book-search, use-library
-  lib/                      # isbn.ts, status.ts
-  types/                    # book.ts (shared contract)
+    auth/                   # AuthForm
+    book/                   # BookSheet, BookSheetSkeleton, BookStatus
+    library/                # ShelfCard, ShelfPicker, LibraryBookRow, ReadingDateField, SortPicker
+    profile/                # ReadingStatsCard
+    scan/                   # ScanOverlay, ScanUnavailable
+    ui/                     # Button, TextField
+  constants/                # theme and screen colors
+  data/                     # Supabase.ts, GoogleBooks.ts + adapter, Library.ts, ReadingStats.ts
+  hooks/                    # useAuth, useBookByIsbn, useBookSearch, useLibrary, useLibraryEntry, ...
+  lib/                      # Isbn.ts, Shelves.ts, LibrarySort.ts, validation and error messages
+  types/                    # Book.ts (shared contract)
 supabase/
-  schema.sql                # books table + RLS policies
+  schema.sql                # books table, constraints and RLS policies
 ```
 
 ## Contributing
@@ -180,4 +191,4 @@ Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/).
 | Member     | Role                       | GitHub                                                   |
 | ---------- | -------------------------- | -------------------------------------------------------- |
 | Alexandre  | Development, documentation | [@AlexandreRichert](https://github.com/AlexandreRichert) |
-| _Teammate_ | _To be completed_          | —                                                        |
+| Louna      | Development                | [@Wysath](https://github.com/Wysath)                     |
