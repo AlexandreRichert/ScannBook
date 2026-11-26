@@ -1,0 +1,7 @@
+{
+  "kind": "books#volume",
+  "id": "vol-minimal",
+  "volumeInfo": {
+    "title": "Un livre sans détails"
+  }
+}
