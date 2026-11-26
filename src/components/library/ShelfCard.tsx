@@ -2,11 +2,12 @@ import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { ReadingDateField } from '@/components/library/ReadingDateField';
 import { ShelfPicker } from '@/components/library/ShelfPicker';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import type { LibraryEntry } from '@/data/Library';
 import { confirmDestructive } from '@/lib/ConfirmDestructive';
-import { formatDay, SHELF_LABELS, type Shelf } from '@/lib/Shelves';
+import { localToday, SHELF_LABELS, type ReadingDates, type Shelf } from '@/lib/Shelves';
 
 type ShelfCardProps = {
   entry: LibraryEntry;
@@ -14,10 +15,12 @@ type ShelfCardProps = {
   onMove: (shelf: Shelf) => Promise<string | null>;
   /** Resolves to a French error message, or null on success. */
   onRemove: () => Promise<string | null>;
+  /** Resolves to a French error message, or null on success. */
+  onDatesChange: (dates: ReadingDates) => Promise<string | null>;
 };
 
 /** A book already in the library: its shelf, its reading dates, the picker to move it, and a way to remove it. */
-export function ShelfCard({ entry, onMove, onRemove }: ShelfCardProps) {
+export function ShelfCard({ entry, onMove, onRemove, onDatesChange }: ShelfCardProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -45,10 +48,15 @@ export function ShelfCard({ entry, onMove, onRemove }: ShelfCardProps) {
     }
   }
 
-  const dates = [
-    entry.started_at && `Commencé le ${formatDay(entry.started_at)}`,
-    entry.finished_at && `Terminé le ${formatDay(entry.finished_at)}`,
-  ].filter(Boolean);
+  // No saving lock here: the iOS calendar reports every day tapped, and dropping one would make the picker jump back
+  async function handleDates(dates: ReadingDates) {
+    setError(await onDatesChange(dates));
+  }
+
+  // Same rules as datesForShelf: only a book you started has a start date, only a finished one has an end date
+  const hasStart = entry.status === 'reading' || entry.status === 'read' || entry.status === 'abandoned';
+  const hasEnd = entry.status === 'read';
+  const today = localToday();
 
   return (
     <View style={styles.panel}>
@@ -58,13 +66,40 @@ export function ShelfCard({ entry, onMove, onRemove }: ShelfCardProps) {
           size={22}
           tintColor={C.primary}
         />
-        <View style={styles.confirmationBody}>
-          <Text style={styles.confirmationText}>
-            Dans ta pile <Text style={styles.strong}>{SHELF_LABELS[entry.status]}</Text>
-          </Text>
-          {dates.length > 0 && <Text style={styles.dates}>{dates.join(' · ')}</Text>}
-        </View>
+        <Text style={styles.confirmationText}>
+          Dans ta pile <Text style={styles.strong}>{SHELF_LABELS[entry.status]}</Text>
+        </Text>
       </View>
+
+      {hasStart && (
+        <>
+          <Text style={styles.sectionTitle} accessibilityRole="header">
+            Dates de lecture
+          </Text>
+          <View style={styles.dates}>
+            <ReadingDateField
+              label="Commencé le"
+              value={entry.started_at}
+              maximumDay={entry.finished_at ?? today}
+              disabled={isSaving}
+              onChange={(day) => handleDates({ started_at: day, finished_at: entry.finished_at })}
+            />
+            {hasEnd && (
+              <>
+                <View style={styles.separator} />
+                <ReadingDateField
+                  label="Terminé le"
+                  value={entry.finished_at}
+                  minimumDay={entry.started_at}
+                  maximumDay={today}
+                  disabled={isSaving}
+                  onChange={(day) => handleDates({ started_at: entry.started_at, finished_at: day })}
+                />
+              </>
+            )}
+          </View>
+        </>
+      )}
 
       <Text style={styles.sectionTitle} accessibilityRole="header">
         Changer de pile
@@ -101,11 +136,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.border,
   },
-  confirmationBody: {
-    flex: 1,
-    gap: 4,
-  },
   confirmationText: {
+    flex: 1,
     color: C.text,
     fontSize: 16,
   },
@@ -113,8 +145,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   dates: {
-    color: C.textSecondary,
-    fontSize: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    borderRadius: 12,
+    backgroundColor: C.surface,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: C.border,
   },
   sectionTitle: {
     color: C.text,

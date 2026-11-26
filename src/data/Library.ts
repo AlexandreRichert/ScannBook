@@ -1,5 +1,5 @@
 import { supabase } from '@/data/Supabase';
-import { datesForShelf, type Shelf } from '@/lib/Shelves';
+import { datesForShelf, type ReadingDates, type Shelf } from '@/lib/Shelves';
 import type { BookInfo } from '@/types/Book';
 
 export type LibraryEntry = {
@@ -13,6 +13,9 @@ const ENTRY_COLUMNS = 'id, status, started_at, finished_at';
 
 // Postgres unique_violation, raised by books_user_isbn_unique
 const DUPLICATE_BOOK = '23505';
+
+// Postgres check_violation, raised by books_dates_check when the end comes before the start
+const INVALID_DATES = '23514';
 
 /** The current user's copy of this book, or null. RLS already limits rows to the signed-in user. */
 export async function fetchLibraryEntry(isbn13: string): Promise<LibraryEntry | null> {
@@ -81,8 +84,16 @@ export async function removeFromLibrary(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function updateReadingDates(id: string, dates: ReadingDates): Promise<LibraryEntry> {
+  const { data, error } = await supabase.from('books').update(dates).eq('id', id).select(ENTRY_COLUMNS).single();
+  if (error) throw error;
+  return data;
+}
+
+
 export function libraryErrorMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : undefined;
   if (code === DUPLICATE_BOOK) return 'Ce livre est déjà dans ta bibliothèque.';
+  if (code === INVALID_DATES) return 'La date de fin ne peut pas précéder la date de début.';
   return 'Impossible d’enregistrer. Vérifie ta connexion et réessaie.';
 }
