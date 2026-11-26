@@ -62,6 +62,20 @@ function readIsbn13s(volumeInfo: UnknownRecord): string[] {
   })
 }
 
+/** The volumes of a `GET /volumes?q=...` response; `[]` when nothing was found. */
+function readSearchVolumes(json: unknown): RawVolume[] {
+  if (!isRecord(json) || typeof json.totalItems !== 'number') {
+    throw new InvalidGoogleBooksResponseError('Search response has no totalItems')
+  }
+
+  const items = json.items
+  if (items === undefined) return []
+  if (!Array.isArray(items)) {
+    throw new InvalidGoogleBooksResponseError('Search response items is not an array')
+  }
+  return items.map(readRawVolume).filter((volume) => volume !== undefined)
+}
+
 /**
  * Reads a `GET /volumes?q=isbn:...` response and returns the volume that
  * matches `isbn13`, or `undefined` when nothing was found.
@@ -70,18 +84,17 @@ function readIsbn13s(volumeInfo: UnknownRecord): string[] {
  * otherwise the first one is used.
  */
 export function pickVolumeFromSearch(json: unknown, isbn13: string): RawVolume | undefined {
-  if (!isRecord(json) || typeof json.totalItems !== 'number') {
-    throw new InvalidGoogleBooksResponseError('Search response has no totalItems')
-  }
-
-  const items = json.items
-  if (items === undefined) return undefined
-  if (!Array.isArray(items)) {
-    throw new InvalidGoogleBooksResponseError('Search response items is not an array')
-  }
-
-  const volumes = items.map(readRawVolume).filter((volume) => volume !== undefined)
+  const volumes = readSearchVolumes(json)
   return volumes.find((volume) => readIsbn13s(volume.volumeInfo).includes(isbn13)) ?? volumes[0]
+}
+
+/** Search results the book screen can open: with a title and an ISBN-13. */
+export function toSearchResults(json: unknown): BookInfo[] {
+  return readSearchVolumes(json).flatMap((volume) => {
+    const isbn13 = readIsbn13s(volume.volumeInfo)[0]
+    const book = isbn13 === undefined ? undefined : toBookInfo(volume, isbn13)
+    return book ? [book] : []
+  })
 }
 
 /** Reads a `GET /volumes/{id}` response. */
