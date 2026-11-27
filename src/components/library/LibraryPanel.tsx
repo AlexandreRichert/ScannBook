@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     height: 56,
     paddingHorizontal: 20,
     borderRadius: 4,
-    backgroundColor: Palette.ink,
+    backgroundColor: Palette.accentStrong,
     experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
   },
   addLabel: {

@@ -64,7 +64,7 @@ function GeneratedCover({ isbn13, title, authors, width }: Required<Omit<BookCov
         style={[
           styles.title,
           framed && styles.titleCentered,
-          { color: ink, fontSize: titleSize, lineHeight: titleSize * 1.08, marginTop: 6 * scale },
+          { color: ink, fontSize: titleSize, lineHeight: titleSize * 1.15, marginTop: 6 * scale },
         ]}
         numberOfLines={framed ? 4 : 5}>
         {title}

@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   primary: {
-    backgroundColor: Palette.ink,
+    backgroundColor: Palette.accentStrong,
     experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
   },
   secondary: {

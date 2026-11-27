@@ -6,11 +6,12 @@ import { Fonts, Palette } from '@/constants/theme';
 
 type PlacedCover = DecorCover & { centerX: number; centerY: number; rotate: number };
 
+// Each side cover is half hidden by its inner neighbour, so its text hugs the outer, visible edge
 const SIDE_COVERS: PlacedCover[] = [
   { title: 'La Peste', author: 'Albert Camus', color: '#1F3550', ink: '#F1E9D6', titleSize: 15, width: 96, centerX: -132, centerY: 162, rotate: -20 },
-  { title: 'La Horde du Contrevent', author: 'Alain Damasio', color: '#1D3140', ink: '#E6EEF1', titleSize: 10, uppercase: true, width: 96, centerX: 132, centerY: 162, rotate: 20 },
-  { title: 'Le Mythe de Sisyphe', author: 'Albert Camus', color: '#EADBC0', ink: '#5A2410', titleSize: 11, width: 96, centerX: -66, centerY: 129, rotate: -10 },
-  { title: 'La Chute', author: 'Albert Camus', color: '#D9A814', ink: '#1A1608', titleSize: 16, width: 96, centerX: 66, centerY: 129, rotate: 10 },
+  { title: 'La Horde du Contrevent', author: 'Alain Damasio', color: '#1D3140', ink: '#E6EEF1', titleSize: 9, uppercase: true, align: 'right', width: 96, centerX: 132, centerY: 162, rotate: 20 },
+  { title: 'Le Mythe\nde Sisyphe', author: 'Albert Camus', color: '#EADBC0', ink: '#5A2410', titleSize: 10, width: 96, centerX: -66, centerY: 129, rotate: -10 },
+  { title: 'La\nChute', author: 'Albert Camus', color: '#D9A814', ink: '#1A1608', titleSize: 15, align: 'right', width: 96, centerX: 66, centerY: 129, rotate: 10 },
 ];
 
 const FRONT_COVER: PlacedCover = {
@@ -44,7 +45,7 @@ export function AuthHero({ title, subtitle }: { title: string; subtitle?: string
           ))}
         </View>
         <View style={styles.titleBlock}>
-          <Text style={styles.title} accessibilityRole="header">
+          <Text style={styles.title} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>
             {title}
           </Text>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -103,16 +104,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 48,
+    bottom: 44,
     alignItems: 'center',
-    gap: 6,
+    gap: 2,
     paddingHorizontal: 24,
   },
   title: {
     color: Palette.inkInverse,
     fontFamily: Fonts.display,
     fontSize: 50,
-    lineHeight: 50,
+    // Not 50: under the font's own line height iOS cuts the top of the letters
+    lineHeight: 60,
     fontWeight: '700',
     letterSpacing: -2.25,
     textAlign: 'center',

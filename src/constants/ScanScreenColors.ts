@@ -8,6 +8,8 @@ export const ScanScreenColors = {
   text: Palette.ink,
   textSecondary: Palette.inkSecondary,
   primary: Palette.ink,
+  /** Fill of the main button. */
+  action: Palette.accentStrong,
   onPrimary: Palette.inkInverse,
   illustration: Palette.paperSunken,
   shelf: Palette.wood,

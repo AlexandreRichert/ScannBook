@@ -25,7 +25,7 @@ export default function SignInScreen() {
   return (
     <AuthForm
       hero
-      title="Pile à lire"
+      title="ScannBook"
       subtitle="Scanne, range, suis tes lectures."
       error={error}
       submitLabel={isSubmitting ? 'Connexion…' : 'Se connecter'}

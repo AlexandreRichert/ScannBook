@@ -26,7 +26,9 @@ export const Palette = {
   /** Edge of fields and outlined buttons: 3:1 against paper, as WCAG asks for control boundaries. */
   lineStrong: '#8F8A82',
   accent: '#EE5B3A',
+  /** Filled buttons and accent text: white on it is 5.3:1, which the brighter accent misses. */
   accentStrong: '#C03D1D',
+  accentSoft: '#FBE8E1',
   danger: '#B3261E',
   wood: '#2A2623',
   woodWall: '#EAE3D7',

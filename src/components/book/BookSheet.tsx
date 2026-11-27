@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 import { BookCover } from '@/components/BookCover';
 import { Fonts, Palette } from '@/constants/theme';
@@ -39,6 +40,8 @@ export function BookSheet({
     <View style={styles.sheet}>
       <View style={styles.hero}>
         <View style={styles.stand}>
+          {/* The book drops onto its shelf; the tilt sits on the inner view because entering drives the outer transform */}
+          <Animated.View entering={FadeInDown.springify().damping(15).stiffness(180)}>
           <View style={styles.book}>
             <View style={[styles.spine, { backgroundColor: spineFor(book.isbn13).color }]}>
               <View style={[styles.fillet, styles.filletTop]} />
@@ -53,10 +56,11 @@ export function BookSheet({
               width={COVER_WIDTH}
             />
           </View>
+          </Animated.View>
           <View style={styles.shelf} />
         </View>
 
-        <View style={styles.metadata}>
+        <Animated.View entering={FadeIn.delay(120).duration(260)} style={styles.metadata}>
           {badge}
           {metadata.map((item, index) => (
             <View key={item.label} style={styles.metadataGroup}>
@@ -67,10 +71,10 @@ export function BookSheet({
               </Text>
             </View>
           ))}
-        </View>
+        </Animated.View>
       </View>
 
-      <View style={styles.heading}>
+      <Animated.View entering={FadeInDown.delay(90).duration(300)} style={styles.heading}>
         <Text
           style={[styles.title, book.title.length <= SHORT_TITLE_LENGTH && styles.titleLarge]}
           accessibilityRole="header">
@@ -78,7 +82,7 @@ export function BookSheet({
         </Text>
         {book.subtitle && <Text style={styles.subtitle}>{book.subtitle}</Text>}
         <Text style={styles.authors}>{book.authors.length > 0 ? book.authors.join(', ') : 'Auteur inconnu'}</Text>
-      </View>
+      </Animated.View>
 
       {children}
 
@@ -137,7 +141,7 @@ const styles = StyleSheet.create({
   },
   book: {
     flexDirection: 'row',
-    marginBottom: 9,
+    marginBottom: 7,
     transform: [{ rotate: '-2deg' }],
   },
   spine: {
@@ -216,7 +220,7 @@ const styles = StyleSheet.create({
   },
   titleLarge: {
     fontSize: 50,
-    lineHeight: 52,
+    lineHeight: 58,
     letterSpacing: -2.25,
   },
   subtitle: {
@@ -246,7 +250,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   readMore: {
-    color: Palette.ink,
+    color: Palette.accentStrong,
     fontFamily: Fonts.display,
     fontSize: 14,
     lineHeight: 18,

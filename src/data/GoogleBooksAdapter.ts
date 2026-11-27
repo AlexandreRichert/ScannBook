@@ -149,7 +149,8 @@ function readPublishedDate(volumeInfo: UnknownRecord): string | undefined {
 }
 
 /**
- * Prefers `small` (about 300 px wide, only on the volume endpoint) over
+ * Prefers `medium` (about 575 px wide) then `small` (about 300 px), both only
+ * on the volume endpoint and only listed when Google has that size, over
  * `thumbnail` (about 128 px, blurry on high-density screens). Forces HTTPS
  * and removes the curled-page effect.
  */
@@ -157,6 +158,7 @@ function readCoverUrl(volumeInfo: UnknownRecord): string | undefined {
   const imageLinks = volumeInfo.imageLinks
   if (!isRecord(imageLinks)) return undefined
   const url =
+    readString(imageLinks, 'medium') ??
     readString(imageLinks, 'small') ??
     readString(imageLinks, 'thumbnail') ??
     readString(imageLinks, 'smallThumbnail')

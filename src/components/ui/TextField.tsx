@@ -37,7 +37,11 @@ export function TextField({
       <View style={styles.control}>
         <Text style={styles.label}>{label}</Text>
         <View style={[styles.zone, error ? styles.zoneError : styles.zoneDefault]}>
-          {icon && <SymbolView name={icon} size={20} tintColor={Palette.inkSecondary} />}
+          {icon && (
+            <View style={styles.icon}>
+              <SymbolView name={icon} size={20} tintColor={Palette.inkSecondary} />
+            </View>
+          )}
           <TextInput
             accessibilityLabel={label}
             placeholderTextColor={Palette.inkTertiary}
@@ -114,10 +118,18 @@ const styles = StyleSheet.create({
   zoneError: {
     borderColor: Palette.danger,
   },
+  // Symbols have different shapes: one box for all keeps the text of every field on the same left edge
+  icon: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   input: {
     flex: 1,
-    height: '100%',
+    alignSelf: 'stretch',
     paddingVertical: 0,
+    textAlignVertical: 'center',
     color: Palette.ink,
     fontFamily: Fonts.body,
     fontSize: 16,
