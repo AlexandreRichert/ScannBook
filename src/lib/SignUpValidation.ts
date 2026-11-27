@@ -1,7 +1,8 @@
 export type SignUpFields = { email: string; password: string; confirmation: string };
 export type SignUpErrors = Partial<Record<keyof SignUpFields, string>>;
 
-export const MIN_PASSWORD_LENGTH = 6;
+// Only checked in the app: the minimum set in the Supabase dashboard is the one that counts and must be raised to match
+export const MIN_PASSWORD_LENGTH = 12;
 
 // Deliberately loose: Supabase does the real check, this only catches obvious typos
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

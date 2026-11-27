@@ -6,7 +6,7 @@ import { AuthLink, AuthPrompt } from '@/components/auth/AuthLink';
 import { FieldIcons, TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { armReturnToBook, disarmReturnToBook } from '@/lib/ReturnAfterSignIn';
-import { validateSignUp, type SignUpErrors } from '@/lib/SignUpValidation';
+import { MIN_PASSWORD_LENGTH, validateSignUp, type SignUpErrors } from '@/lib/SignUpValidation';
 
 export default function SignUpScreen() {
   const { book } = useLocalSearchParams<{ book?: string }>();
@@ -81,7 +81,7 @@ export default function SignUpScreen() {
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}
-        hint="6 caractères minimum"
+        hint={`${MIN_PASSWORD_LENGTH} caractères minimum`}
         secureTextEntry
         revealable
         autoComplete="new-password"

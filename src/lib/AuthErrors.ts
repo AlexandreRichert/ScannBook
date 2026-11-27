@@ -1,3 +1,5 @@
+import { MIN_PASSWORD_LENGTH } from '@/lib/SignUpValidation';
+
 // Supabase error codes are stable, but the messages are not. This function maps error codes to user-friendly messages.
 export function authErrorMessage(code: string | undefined): string {
   switch (code) {
@@ -10,7 +12,7 @@ export function authErrorMessage(code: string | undefined): string {
     case 'validation_failed':
       return 'Adresse email invalide.';
     case 'weak_password':
-      return 'Le mot de passe doit contenir au moins 6 caractères.';
+      return `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères.`;
     case 'otp_expired':
       return 'Code invalide ou expiré. Redemande un code.';
     case 'same_password':

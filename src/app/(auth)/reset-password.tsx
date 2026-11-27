@@ -6,6 +6,7 @@ import { AuthLink } from '@/components/auth/AuthLink';
 import { FieldIcons, TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
 import { validateResetPassword, type ResetPasswordErrors } from '@/lib/ResetPasswordValidation';
+import { MIN_PASSWORD_LENGTH } from '@/lib/SignUpValidation';
 
 export default function ResetPasswordScreen() {
   const { email } = useLocalSearchParams<{ email?: string }>();
@@ -67,7 +68,7 @@ export default function ResetPasswordScreen() {
         value={password}
         onChangeText={setPassword}
         error={fieldErrors.password}
-        hint="6 caractères minimum"
+        hint={`${MIN_PASSWORD_LENGTH} caractères minimum`}
         secureTextEntry
         revealable
         autoComplete="new-password"
