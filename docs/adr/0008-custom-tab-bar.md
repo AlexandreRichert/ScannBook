@@ -29,7 +29,7 @@ The redesign (PR #79) gives the app one visual identity, paper background and br
 - The bar floats above the content. Every tab screen must add `BottomTabInset` (`src/constants/theme.ts`) to its bottom padding, or its last items sit under the bar.
 - `expo-router/ui` is experimental, so an SDK upgrade may change it. The risk is contained: only `app-tabs.tsx` imports it.
 - Icons still come from `expo-symbols`: SF Symbols on iOS, Material names on Android and web.
-- The bar was only checked on iOS and in the web build. Android is untested.
+- The bar was checked on iOS, on Android and in the web build.
 
 ## Ownership
 
@@ -37,4 +37,4 @@ The development team is responsible for `app-tabs.tsx`, including its accessibil
 
 ## Review
 
-Revisit when upgrading the Expo SDK, if `expo-router/ui` changes or `NativeTabs` lets us set the bar's surface on iOS 26, and after the first test on Android.
+Revisit when upgrading the Expo SDK, if `expo-router/ui` changes or `NativeTabs` lets us set the bar's surface on iOS 26.
