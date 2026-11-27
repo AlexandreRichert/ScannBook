@@ -4,8 +4,6 @@ import { spineFor } from '@/lib/Spines';
 export const SHELF_PADDING = 24;
 export const COVER_GAP = 16;
 export const SPINE_GAP = 1;
-export const CAPTION_WIDTH = 110;
-export const CAPTION_GAP = 12;
 
 const COVERS_PER_ROW = 3;
 const MAX_COVER_WIDTH = 150;
@@ -16,7 +14,7 @@ const ALL_COVERS_UP_TO = 9;
 
 export type ShelfRow =
   | { kind: 'covers'; key: string; books: LibraryBook[] }
-  | { kind: 'spines'; key: string; books: LibraryBook[]; caption?: string };
+  | { kind: 'spines'; key: string; books: LibraryBook[] };
 
 export type SpineLook = { color: string; thickness: number; length: number; ink: string; fillet: string };
 
@@ -61,24 +59,19 @@ export function buildShelfRows(
   const spines = books.slice(coverCount);
   if (spines.length === 0) return rows;
 
-  const caption = `et ${spines.length} ${spines.length > 1 ? 'autres' : 'autre'}, par la tranche`;
   let current: LibraryBook[] = [];
   let used = 0;
-  // The first spine row leaves room for the caption on its right
-  let available = contentWidth - CAPTION_WIDTH - CAPTION_GAP;
 
   const flush = () => {
-    const isFirst = !rows.some((row) => row.kind === 'spines');
-    rows.push({ kind: 'spines', key: `spines-${current[0].id}`, books: current, caption: isFirst ? caption : undefined });
+    rows.push({ kind: 'spines', key: `spines-${current[0].id}`, books: current });
     current = [];
     used = 0;
-    available = contentWidth;
   };
 
   for (const book of spines) {
     const { thickness } = spineLook(book.isbn13);
     let needed = current.length > 0 ? used + SPINE_GAP + thickness : thickness;
-    if (current.length > 0 && needed > available) {
+    if (current.length > 0 && needed > contentWidth) {
       flush();
       needed = thickness;
     }
