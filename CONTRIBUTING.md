@@ -109,6 +109,40 @@ pnpm test:watch    # re-run tests on file changes
 - Reanimated does not load under Jest. For a component built on `PressableScale`, add `jest.mock('@/components/ui/PressableScale')`: it swaps in a plain `Pressable` from `src/components/ui/__mocks__/`, with the same behavior and accessibility props.
 - `test(<scope>): …` is the commit type for a change that only adds or updates tests.
 
+## E2E tests
+
+End-to-end flows run with [Maestro](https://docs.maestro.dev) on the installed app. They live in `.maestro/`: one file per user journey at the top level, shared steps in `.maestro/subflows/`.
+
+| Flow                       | Journey                                                                   |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `sign-in.yaml`             | A guest signs in and reaches their profile                                |
+| `add-book-by-isbn.yaml`    | Manual ISBN entry → book screen → "À lire" → shown in the library         |
+| `library-persistence.yaml` | The added book is still in the library after the app is closed and reopened |
+
+### Prerequisites
+
+- **Maestro CLI**: download [maestro.zip](https://github.com/mobile-dev-inc/maestro/releases/latest/download/maestro.zip), extract it and add its `bin` folder to `PATH`. It needs Java 17 or later, with `JAVA_HOME` set.
+- **An Android emulator** with the app installed: a `development` build (then run `pnpm start`), or an `e2e-test` build, which embeds its JavaScript. See `eas.json`.
+- **A test account** used only for E2E tests, with an **empty library**: the flows check the "À lire" count and remove the book they added. Never use your own account.
+
+### Running
+
+```bash
+# Development build: METRO_URL points the dev client at Metro (10.0.2.2 is the PC, seen from the emulator)
+maestro test -e EMAIL=<test-email> -e PASSWORD=<test-password> -e METRO_URL=http://10.0.2.2:8081 .maestro/
+
+# e2e-test build: no METRO_URL
+maestro test -e EMAIL=<test-email> -e PASSWORD=<test-password> .maestro/
+
+# One flow only
+maestro test -e EMAIL=<test-email> -e PASSWORD=<test-password> -e METRO_URL=http://10.0.2.2:8081 .maestro/sign-in.yaml
+```
+
+- **Credentials are never committed**: pass them with `-e` on the command line, nothing in `.maestro/` holds them.
+- `BOOK_ISBN` overrides the test book (default `9782070612758`). It must be a book Google Books knows.
+- Each flow starts from a clean install (`clearState`) and leaves the test library empty, so the flows can be replayed in any order.
+- Target elements with the `testID`s of the main flow (`sign-in-email`, `isbn-input`, `shelf-to_read`, `tab-library`…). Add a `testID` rather than matching a long text that may change.
+
 ## Code conventions
 
 - Files and components in PascalCase (`BookCard.tsx`, `GoogleBooks.ts`). Route files in `src/app/` are the exception: they use kebab-case, following the [Expo Router notation](https://docs.expo.dev/router/basics/notation/) (`sign-in.tsx`, `book/[id].tsx`, `_layout.tsx`).

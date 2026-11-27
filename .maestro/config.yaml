@@ -1,0 +1,9 @@
+# Only the top-level flows run; subflows/ holds the steps they share.
+flows:
+  - "*"
+executionOrder:
+  continueOnFailure: false
+  flowsOrder:
+    - sign-in
+    - add-book-by-isbn
+    - library-persistence

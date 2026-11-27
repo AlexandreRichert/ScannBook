@@ -45,6 +45,7 @@ export default function AppTabs() {
           </TabTrigger>
           <TabTrigger name="scan" href="/scan" asChild>
             <TabButton
+              testID="tab-scan"
               label="Scanner"
               icon={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }}
               focusedIcon={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }}

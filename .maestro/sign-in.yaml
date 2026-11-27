@@ -1,0 +1,8 @@
+# A guest signs in with the test account and reaches their profile.
+appId: com.alexandrerichert.scannbook
+---
+- runFlow: subflows/launch.yaml
+- runFlow: subflows/sign-in.yaml
+- tapOn:
+    id: tab-profile
+- assertVisible: ${EMAIL}

@@ -1,0 +1,28 @@
+# Manual ISBN entry → book screen → added to "À lire" → shown in the library.
+# The test account's library must otherwise be empty: the flow checks the
+# "À lire" count, and removes the book at the end.
+appId: com.alexandrerichert.scannbook
+---
+- runFlow: subflows/launch.yaml
+- runFlow: subflows/sign-in.yaml
+- runFlow: subflows/open-test-book.yaml
+- runFlow: subflows/remove-test-book.yaml
+
+- tapOn:
+    id: shelf-to_read
+- tapOn: Ajouter à ma bibliothèque
+- extendedWaitUntil:
+    visible: Dans mes livres
+    timeout: 15000
+
+# The ISBN screen was replaced by the book screen: back returns to the scanner.
+- back
+- tapOn:
+    id: tab-library
+- extendedWaitUntil:
+    visible: À lire, 1 livre
+    timeout: 15000
+
+# Back to an empty library for the next run.
+- runFlow: subflows/open-test-book.yaml
+- runFlow: subflows/remove-test-book.yaml

@@ -1,0 +1,20 @@
+# Signs in from the guest home with the test account (EMAIL, PASSWORD).
+appId: com.alexandrerichert.scannbook
+---
+# The guest home shows "Se connecter" twice: the header button comes first.
+- tapOn:
+    text: Se connecter
+    index: 0
+- tapOn:
+    id: sign-in-email
+- inputText: ${EMAIL}
+- tapOn:
+    id: sign-in-password
+- inputText: ${PASSWORD}
+# Enter submits the form, like the keyboard's "go" key, without the keyboard
+# covering the button.
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: tab-profile
+    timeout: 30000

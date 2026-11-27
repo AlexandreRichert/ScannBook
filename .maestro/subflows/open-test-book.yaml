@@ -1,0 +1,18 @@
+# Opens the book screen of the test ISBN through manual entry.
+appId: com.alexandrerichert.scannbook
+env:
+  BOOK_ISBN: ${BOOK_ISBN || "9782070612758"}
+---
+- tapOn:
+    id: tab-scan
+# The button text uses a typographic apostrophe: "." matches it.
+- tapOn: Saisir l.ISBN à la main
+- tapOn:
+    id: isbn-input
+- inputText: ${BOOK_ISBN}
+# The field submits on Enter, like the keyboard's search key.
+- pressKey: Enter
+# Either the add form or, if a previous run stopped halfway, the book already in the library.
+- extendedWaitUntil:
+    visible: Ajouter à ma bibliothèque|Dans mes livres
+    timeout: 30000

@@ -1,0 +1,18 @@
+# On the book screen: removes the book from the library if it is there, so
+# every run starts and ends with an empty test library.
+appId: com.alexandrerichert.scannbook
+---
+- runFlow:
+    when:
+      visible: Dans mes livres
+    commands:
+      - scrollUntilVisible:
+          element:
+            text: Retirer de ma bibliothèque
+          direction: DOWN
+      - tapOn: Retirer de ma bibliothèque
+      # Confirmation dialog. Android may show button labels in capitals.
+      - tapOn: (?i)retirer
+      - extendedWaitUntil:
+          visible: Ajouter à ma bibliothèque
+          timeout: 15000

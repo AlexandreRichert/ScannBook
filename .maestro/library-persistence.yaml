@@ -1,0 +1,31 @@
+# A book added to the library is still there after the app is closed and
+# reopened: the session and the library survive a restart.
+appId: com.alexandrerichert.scannbook
+---
+- runFlow: subflows/launch.yaml
+- runFlow: subflows/sign-in.yaml
+- runFlow: subflows/open-test-book.yaml
+- runFlow: subflows/remove-test-book.yaml
+- tapOn:
+    id: shelf-to_read
+- tapOn: Ajouter à ma bibliothèque
+- extendedWaitUntil:
+    visible: Dans mes livres
+    timeout: 15000
+
+# No clearState: a development build reopens the last Metro URL by itself.
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: tab-library
+    timeout: 120000
+- tapOn:
+    id: tab-library
+- extendedWaitUntil:
+    visible: À lire, 1 livre
+    timeout: 15000
+
+# Back to an empty library for the next run.
+- runFlow: subflows/open-test-book.yaml
+- runFlow: subflows/remove-test-book.yaml
