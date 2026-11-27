@@ -41,6 +41,11 @@ export const ShelfColors: Record<Shelf, string> = {
   abandoned: '#B7B1A8',
 };
 
+/** Light frame of a search result already on a shelf: the shelf color as #RRGGBBAA, ~14% fill and ~45% edge. */
+export const ShelfTints = Object.fromEntries(
+  Object.entries(ShelfColors).map(([shelf, color]) => [shelf, { backgroundColor: `${color}24`, borderColor: `${color}73` }]),
+) as Record<Shelf, { backgroundColor: string; borderColor: string }>;
+
 export const Fonts = {
   display: 'SpaceGrotesk',
   body: 'DMSans',
