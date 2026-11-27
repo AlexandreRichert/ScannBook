@@ -2,6 +2,7 @@ import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
+import { Fonts } from '@/constants/theme';
 
 type SearchFieldProps = {
   value: string;
@@ -12,11 +13,13 @@ type SearchFieldProps = {
 export function SearchField({ value, onChangeText, onSubmit }: SearchFieldProps) {
   return (
     <View style={styles.field}>
-      <SymbolView
-        name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
-        size={20}
-        tintColor={C.textSecondary}
-      />
+      <View style={styles.icon}>
+        <SymbolView
+          name={{ ios: 'magnifyingglass', android: 'search', web: 'search' }}
+          size={20}
+          tintColor={C.textSecondary}
+        />
+      </View>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -55,11 +58,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.border,
   },
+  icon: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Same recipe as TextField: stretched rather than a percentage height, so iOS centers the placeholder on the icon
   input: {
     flex: 1,
-    height: '100%',
+    alignSelf: 'stretch',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
     color: C.text,
-    fontSize: 17,
+    fontFamily: Fonts.body,
+    fontSize: 16,
   },
   pressed: {
     opacity: 0.7,

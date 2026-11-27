@@ -1,7 +1,8 @@
-import { useRouter } from 'expo-router';
+import { useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { BookCover } from '@/components/BookCover';
+import { useOpenBook, type BookTarget } from '@/components/library/BookOpening';
 import { ProgressBar } from '@/components/library/ProgressBar';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Fonts, Palette } from '@/constants/theme';
@@ -10,37 +11,40 @@ import { progressRatio } from '@/lib/ReadingProgress';
 
 /** Cover standing on the shelf, with the reading progress on it for a book being read. */
 export function ShelfCover({ book, width }: { book: LibraryBook; width: number }) {
-  const router = useRouter();
+  const openBook = useOpenBook();
+  const ref = useRef<BookTarget>(null);
   const authors = book.authors.length > 0 ? book.authors.join(', ') : 'Auteur inconnu';
   const ratio =
     book.status === 'reading' && book.page_count !== null ? progressRatio(book.current_page, book.page_count) : null;
 
   return (
-    <PressableScale
-      onPress={() => router.push(`/book/${book.isbn13}`)}
-      accessibilityRole="button"
-      accessibilityLabel={`${book.title}, ${authors}`}
-      style={[styles.cover, { width }]}>
-      <View style={styles.clip}>
-        <BookCover
-          key={book.isbn13}
-          isbn13={book.isbn13}
-          title={book.title}
-          authors={book.authors}
-          coverUrl={book.cover_url ?? undefined}
-          width={width}
-        />
-        <View style={[styles.hinge, { width: width * 0.08 }]} />
-        {ratio !== null && (
-          <View style={styles.progress}>
-            <View style={styles.bar}>
-              <ProgressBar ratio={ratio} />
+    <View ref={ref} collapsable={false}>
+      <PressableScale
+        onPress={() => openBook(book, ref)}
+        accessibilityRole="button"
+        accessibilityLabel={`${book.title}, ${authors}`}
+        style={[styles.cover, { width }]}>
+        <View style={styles.clip}>
+          <BookCover
+            key={book.isbn13}
+            isbn13={book.isbn13}
+            title={book.title}
+            authors={book.authors}
+            coverUrl={book.cover_url ?? undefined}
+            width={width}
+          />
+          <View style={[styles.hinge, { width: width * 0.08 }]} />
+          {ratio !== null && (
+            <View style={styles.progress}>
+              <View style={styles.bar}>
+                <ProgressBar ratio={ratio} />
+              </View>
+              <Text style={styles.percent}>{Math.round(ratio * 100)} %</Text>
             </View>
-            <Text style={styles.percent}>{Math.round(ratio * 100)} %</Text>
-          </View>
-        )}
-      </View>
-    </PressableScale>
+          )}
+        </View>
+      </PressableScale>
+    </View>
   );
 }
 

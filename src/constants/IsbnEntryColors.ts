@@ -9,6 +9,8 @@ export const IsbnEntryColors = {
   textSecondary: Palette.inkSecondary,
   textTertiary: Palette.inkTertiary,
   primary: Palette.ink,
+  /** Fill of the main button. */
+  action: Palette.accentStrong,
   onPrimary: Palette.inkInverse,
   accent: Palette.accentStrong,
   error: Palette.danger,

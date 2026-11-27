@@ -6,6 +6,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BookStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
+import { BookOpeningProvider } from '@/components/library/BookOpening';
 import { ShelfHeader } from '@/components/library/shelf-view/ShelfHeader';
 import { ShelfRowView } from '@/components/library/shelf-view/ShelfRowView';
 import { buildShelfRows, coverWidthFor, SHELF_PADDING } from '@/components/library/shelf-view/ShelfRows';
@@ -51,29 +52,31 @@ export default function ShelfScreen() {
       <StatusBar style="dark" />
 
       {state.status === 'success' ? (
-        <FlatList
-          style={styles.fill}
-          data={rows}
-          keyExtractor={(row) => row.key}
-          renderItem={({ item, index }) => (
-            <Animated.View entering={FadeInDown.delay(Math.min(index, 5) * 50).duration(280)}>
-              <ShelfRowView row={item} coverWidth={coverWidth} />
-            </Animated.View>
-          )}
-          ListHeaderComponent={
-            <ShelfHeader shelf={shelf} counts={countByShelf(state.books)} sort={sort} onSortChange={setSort} />
-          }
-          contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
-          ListEmptyComponent={
-            <View style={styles.empty}>
-              <BookStatus
-                icon={{ ios: 'books.vertical', android: 'library_books', web: 'library_books' }}
-                title="Aucun livre ici"
-                actions={<StatusButton label="Scanner un livre" onPress={scan} />}
-              />
-            </View>
-          }
-        />
+        <BookOpeningProvider>
+          <FlatList
+            style={styles.fill}
+            data={rows}
+            keyExtractor={(row) => row.key}
+            renderItem={({ item, index }) => (
+              <Animated.View entering={FadeInDown.delay(Math.min(index, 5) * 50).duration(280)}>
+                <ShelfRowView row={item} coverWidth={coverWidth} />
+              </Animated.View>
+            )}
+            ListHeaderComponent={
+              <ShelfHeader shelf={shelf} counts={countByShelf(state.books)} sort={sort} onSortChange={setSort} />
+            }
+            contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 24 }]}
+            ListEmptyComponent={
+              <View style={styles.empty}>
+                <BookStatus
+                  icon={{ ios: 'books.vertical', android: 'library_books', web: 'library_books' }}
+                  title="Aucun livre ici"
+                  actions={<StatusButton label="Scanner un livre" onPress={scan} />}
+                />
+              </View>
+            }
+          />
+        </BookOpeningProvider>
       ) : (
         <>
           <ShelfHeader shelf={shelf} sort={sort} onSortChange={setSort} />

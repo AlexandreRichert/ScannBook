@@ -4,13 +4,31 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SignInPrompt } from '@/components/guest/SignInPrompt';
 import { Bookcase } from '@/components/library/Bookcase';
-import { BottomTabInset, Fonts, MaxContentWidth, Palette } from '@/constants/theme';
+import { Logo } from '@/components/Logo';
+import { Headline } from '@/components/ui/Headline';
+import { BottomTabInset, Fonts, MaxContentWidth, Palette, Space } from '@/constants/theme';
+import { useAuth } from '@/hooks/useAuth';
 import { useLibrary } from '@/hooks/useLibrary';
 import type { Shelf } from '@/lib/Shelves';
 
-/** Library tab: every shelf at a glance as one bookcase (Figma frame 15), each cubby opening its shelf. */
 export default function LibraryScreen() {
+  const { isSignedIn } = useAuth();
+  if (!isSignedIn) {
+    return (
+      <SignInPrompt
+        icon={{ ios: 'books.vertical', android: 'library_books', web: 'library_books' }}
+        title="Tes piles t’attendent"
+        body="Connecte-toi pour ranger tes livres par pile : à lire, en cours, lus, wishlist."
+      />
+    );
+  }
+  return <Library />;
+}
+
+/** Library tab: every shelf at a glance as one bookcase (Figma frame 15), each cubby opening its shelf. */
+function Library() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { state, retry } = useLibrary();
@@ -23,13 +41,14 @@ export default function LibraryScreen() {
       style={styles.screen}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + BottomTabInset + 24 },
+        { paddingTop: insets.top + Space.block, paddingBottom: insets.bottom + BottomTabInset + Space.gutter },
       ]}>
       <StatusBar style="dark" />
+      <View style={styles.bar}>
+        <Logo />
+      </View>
       <View style={styles.heading}>
-        <Text style={styles.title} accessibilityRole="header">
-          Mes piles
-        </Text>
+        <Headline>Mes *piles*</Headline>
         {count !== null && (
           <Text style={styles.count}>
             {count} {count > 1 ? 'livres rangés' : 'livre rangé'}
@@ -63,30 +82,26 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.paper,
   },
   content: {
-    gap: 28,
+    gap: Space.section,
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: Space.gutter,
+  },
+  // Same height as the bar of the home tab, so the logo sits at the same place on every tab
+  bar: {
+    justifyContent: 'center',
+    minHeight: 40,
+    marginBottom: Space.item - Space.section,
   },
   heading: {
-    gap: 4,
-    paddingHorizontal: 4,
-  },
-  title: {
-    color: Palette.ink,
-    fontFamily: Fonts.display,
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: '700',
-    letterSpacing: -1.05,
+    gap: Space.item,
   },
   count: {
     color: Palette.inkSecondary,
     fontFamily: Fonts.body,
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: '500',
+    fontSize: 15,
+    lineHeight: 22,
   },
   status: {
     alignItems: 'center',

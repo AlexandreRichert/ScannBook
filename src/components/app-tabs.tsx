@@ -11,7 +11,7 @@ import {
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useEffect, type PropsWithChildren } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PressableScale } from '@/components/ui/PressableScale';
@@ -20,7 +20,7 @@ import { BottomTabBar, Fonts, Palette } from '@/constants/theme';
 type IconName = SymbolViewProps['name'];
 
 // A JS bar rather than NativeTabs: on iOS 26 the system draws the liquid glass
-// bar and ignores backgroundColor, so the dark mockup bar cannot be reproduced natively
+// bar and ignores backgroundColor, so the bar's own surface cannot be set natively
 export default function AppTabs() {
   return (
     <Tabs>
@@ -42,7 +42,11 @@ export default function AppTabs() {
             />
           </TabTrigger>
           <TabTrigger name="scan" href="/scan" asChild>
-            <ScanButton />
+            <TabButton
+              label="Scanner"
+              icon={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }}
+              focusedIcon={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }}
+            />
           </TabTrigger>
           <TabTrigger name="profile" href="/profile" asChild>
             <TabButton
@@ -73,53 +77,35 @@ function TabBar({ children, style, ...props }: TabListProps) {
 type TabButtonProps = TabTriggerSlotProps & { label: string; icon: IconName; focusedIcon: IconName };
 
 function TabButton({ label, icon, focusedIcon, isFocused, ref: _ref, ...props }: TabButtonProps) {
-  const color = isFocused ? Palette.inkInverse : Palette.inkDisabled;
   const progress = useSharedValue(isFocused ? 1 : 0);
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: -2 * progress.get() }, { scale: 1 + 0.08 * progress.get() }],
-  }));
+  // A plain fade: any scale or bounce here reads as a pulse on every tab change
+  const discStyle = useAnimatedStyle(() => ({ opacity: progress.get() }));
 
   useEffect(() => {
-    progress.set(withSpring(isFocused ? 1 : 0, { damping: 16, stiffness: 260 }));
+    progress.set(withTiming(isFocused ? 1 : 0, { duration: 140 }));
   }, [isFocused, progress]);
 
   return (
     <PressableScale
       {...props}
       haptic={!isFocused}
-      pressedScale={0.92}
+      pressedScale={1}
       accessibilityRole="tab"
       accessibilityState={{ selected: isFocused }}
       accessibilityLabel={label}
       style={styles.tab}>
-      <Animated.View style={iconStyle}>
-        <SymbolView name={isFocused ? focusedIcon : icon} size={22} tintColor={color} />
-      </Animated.View>
-      <Text style={[styles.label, { color }]} numberOfLines={1}>
+      <View style={styles.icon}>
+        <Animated.View style={[styles.disc, discStyle]} />
+        <SymbolView
+          name={isFocused ? focusedIcon : icon}
+          size={20}
+          tintColor={isFocused ? Palette.inkInverse : Palette.inkSecondary}
+        />
+      </View>
+      <Text style={[styles.label, isFocused && styles.labelFocused]} numberOfLines={1}>
         {label}
       </Text>
     </PressableScale>
-  );
-}
-
-function ScanButton({ isFocused, ref: _ref, ...props }: TabTriggerSlotProps) {
-  return (
-    <View style={styles.tab}>
-      <PressableScale
-        {...props}
-        haptic={!isFocused}
-        pressedScale={0.9}
-        accessibilityRole="tab"
-        accessibilityState={{ selected: isFocused }}
-        accessibilityLabel="Scanner un livre"
-        style={[styles.scan, isFocused && styles.scanFocused]}>
-        <SymbolView
-          name={{ ios: 'barcode.viewfinder', android: 'barcode_scanner', web: 'barcode_scanner' }}
-          size={24}
-          tintColor={Palette.inkInverse}
-        />
-      </PressableScale>
-    </View>
   );
 }
 
@@ -165,34 +151,37 @@ const styles = StyleSheet.create({
     height: BottomTabBar.height,
     paddingHorizontal: 8,
     borderRadius: 6,
-    backgroundColor: Palette.ink,
-    experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
+    backgroundColor: Palette.paperRaised,
+    borderWidth: 1,
+    borderColor: Palette.line,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3,
+    gap: 2,
     minHeight: 48,
   },
+  icon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
+  },
+  disc: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: 18,
+    backgroundColor: Palette.accent,
+  },
   label: {
+    color: Palette.inkSecondary,
     fontFamily: Fonts.body,
     fontSize: 11,
     lineHeight: 14,
     fontWeight: '500',
   },
-  scan: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    backgroundColor: Palette.accent,
-    experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
-  },
-  scanFocused: {
-    borderColor: Palette.inkInverse,
+  labelFocused: {
+    color: Palette.ink,
+    fontWeight: '700',
   },
 });

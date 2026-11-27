@@ -1,4 +1,3 @@
-import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
@@ -6,7 +5,7 @@ import { BookCover } from '@/components/BookCover';
 import { BookSpine } from '@/components/library/shelf-view/BookSpine';
 import { spineLook, type SpineScale } from '@/components/library/shelf-view/ShelfRows';
 import { PressableScale } from '@/components/ui/PressableScale';
-import { Fonts, Palette, ShelfColors } from '@/constants/theme';
+import { Fonts, Palette, ShelfColors, Space } from '@/constants/theme';
 import type { LibraryBook } from '@/data/Library';
 import { SHELF_LABELS, type Shelf } from '@/lib/Shelves';
 
@@ -17,12 +16,12 @@ const COVER_WIDTH = 52;
 const BOOK_GAP = 2;
 const COVER_GAP = 6;
 const MORE_WIDTH = 40;
-const SHELF_INSET = 8;
+const SHELF_INSET = 4;
 
 const EMPTY_TEXT: Record<Shelf, string> = {
   reading: 'Aucune lecture en cours',
   to_read: 'Rien à lire pour l’instant',
-  wishlist: 'Aucune envie notée',
+  wishlist: 'Ta wishlist est vide',
   read: 'Aucun livre terminé',
   abandoned: 'Aucun livre abandonné',
 };
@@ -32,23 +31,34 @@ type BookcaseProps = {
   onOpenShelf: (shelf: Shelf) => void;
 };
 
-/** Every shelf as one row of books on its own plank (Figma frame 15, without the heavy frame). */
+/** Every pile as a card of books on a plank: what is being read across the screen, the others two by two. */
 export function Bookcase({ books, onOpenShelf }: BookcaseProps) {
+  const [featured, ...others] = ORDER;
+  const of = (shelf: Shelf) => books.filter((book) => book.status === shelf);
+
   return (
     <View style={styles.bookcase}>
-      {ORDER.map((shelf) => (
-        <Cubby
-          key={shelf}
-          shelf={shelf}
-          books={books.filter((book) => book.status === shelf)}
-          onPress={() => onOpenShelf(shelf)}
-        />
-      ))}
+      <Cubby shelf={featured} books={of(featured)} onPress={() => onOpenShelf(featured)} />
+      <View style={styles.grid}>
+        {others.map((shelf) => (
+          <View key={shelf} style={styles.cell}>
+            <Cubby compact shelf={shelf} books={of(shelf)} onPress={() => onOpenShelf(shelf)} />
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
 
-function Cubby({ shelf, books, onPress }: { shelf: Shelf; books: LibraryBook[]; onPress: () => void }) {
+type CubbyProps = {
+  shelf: Shelf;
+  books: LibraryBook[];
+  onPress: () => void;
+  /** Half-width card of the grid: smaller title, no « Tout voir ». */
+  compact?: boolean;
+};
+
+function Cubby({ shelf, books, onPress, compact = false }: CubbyProps) {
   const [width, setWidth] = useState(0);
   const covers = shelf === 'reading';
   const { shown, hidden } = fitBooks(books, width, covers);
@@ -58,17 +68,16 @@ function Cubby({ shelf, books, onPress }: { shelf: Shelf; books: LibraryBook[]; 
       onPress={onPress}
       pressedScale={0.98}
       accessibilityRole="button"
-      accessibilityLabel={`${SHELF_LABELS[shelf]}, ${books.length} ${books.length > 1 ? 'livres' : 'livre'}`}>
+      accessibilityLabel={`${SHELF_LABELS[shelf]}, ${books.length} ${books.length > 1 ? 'livres' : 'livre'}`}
+      style={styles.card}>
       <View style={styles.header}>
         <View style={[styles.dot, { backgroundColor: ShelfColors[shelf] }]} />
-        <Text style={styles.label}>{SHELF_LABELS[shelf]}</Text>
-        <Text style={styles.count}>{books.length}</Text>
-        <SymbolView
-          name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
-          size={13}
-          tintColor={Palette.inkSecondary}
-          style={styles.chevron}
-        />
+        <Text style={[styles.label, compact && styles.labelCompact]} numberOfLines={1}>
+          {SHELF_LABELS[shelf]}
+        </Text>
+        <Text style={[styles.count, compact && styles.countCompact]}>{books.length}</Text>
+        {/* Reads as the link of the home tab; the whole card is the button */}
+        {!compact && <Text style={styles.seeAll}>Tout voir</Text>}
       </View>
 
       {/* The whole cubby opens the shelf, so the books inside take no touches and stay out of the screen reader */}
@@ -130,14 +139,39 @@ function fitBooks(books: LibraryBook[], width: number, covers: boolean) {
 
 const styles = StyleSheet.create({
   bookcase: {
-    gap: 26,
+    gap: Space.card,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Space.card,
+  },
+  // Two per row: each takes what is left of half the width once the gap is shared
+  cell: {
+    flexGrow: 1,
+    flexBasis: '40%',
+  },
+  card: {
+    padding: Space.card,
+    paddingBottom: Space.block,
+    borderRadius: 6,
+    backgroundColor: Palette.accentSoft,
+  },
+  labelCompact: {
+    flexShrink: 1,
+    fontSize: 16,
+    lineHeight: 22,
+    letterSpacing: -0.16,
+  },
+  countCompact: {
+    fontSize: 14,
+    lineHeight: 22,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 10,
-    paddingHorizontal: 4,
+    gap: Space.item,
+    marginBottom: Space.block,
   },
   dot: {
     width: 7,
@@ -147,21 +181,26 @@ const styles = StyleSheet.create({
   label: {
     color: Palette.ink,
     fontFamily: Fonts.display,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 20,
+    lineHeight: 26,
     fontWeight: '700',
-    letterSpacing: 0.72,
-    textTransform: 'uppercase',
+    letterSpacing: -0.4,
   },
   count: {
     color: Palette.inkSecondary,
     fontFamily: Fonts.display,
-    fontSize: 12,
-    lineHeight: 16,
+    fontSize: 16,
+    lineHeight: 26,
     fontWeight: '500',
   },
-  chevron: {
+  seeAll: {
     marginLeft: 'auto',
+    color: Palette.accentStrong,
+    fontFamily: Fonts.body,
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
   books: {
     height: 96,
@@ -171,7 +210,7 @@ const styles = StyleSheet.create({
     pointerEvents: 'none',
   },
   plank: {
-    height: 8,
+    height: 5,
     borderRadius: 2,
     backgroundColor: Palette.wood,
     experimental_backgroundImage:
@@ -183,7 +222,7 @@ const styles = StyleSheet.create({
     width: MORE_WIDTH,
     height: 40,
     borderRadius: 4,
-    backgroundColor: Palette.paperSunken,
+    backgroundColor: Palette.paperRaised,
   },
   moreText: {
     color: Palette.inkSecondary,
@@ -193,9 +232,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   empty: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 12,
+    gap: Space.block,
   },
   ghost: {
     width: 26,
@@ -206,6 +246,7 @@ const styles = StyleSheet.create({
     borderColor: Palette.lineStrong,
   },
   emptyText: {
+    flex: 1,
     marginBottom: 6,
     color: Palette.inkTertiary,
     fontFamily: Fonts.body,

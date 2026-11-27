@@ -20,7 +20,7 @@ type AuthFormProps = PropsWithChildren<{
   canSubmit: boolean;
   onSubmit: () => void;
   footer?: ReactNode;
-  /** Shows the title in the tomato header of the sign-in screen instead of above the form. */
+  /** Shows the title in the brown header of the sign-in screen instead of above the form. */
   hero?: boolean;
   back?: { label: string; onPress: () => void };
 }>;

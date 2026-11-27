@@ -103,11 +103,13 @@ describe('cover URL', () => {
     );
   });
 
-  it('prefers small, then thumbnail, then smallThumbnail', () => {
+  it('prefers medium, then small, then thumbnail, then smallThumbnail', () => {
+    const medium = 'https://books.google.com/medium';
     const small = 'https://books.google.com/small';
     const thumbnail = 'https://books.google.com/thumbnail';
     const smallThumbnail = 'https://books.google.com/smallThumbnail';
 
+    expect(coverOf({ medium, small, thumbnail, smallThumbnail })).toBe(medium);
     expect(coverOf({ small, thumbnail, smallThumbnail })).toBe(small);
     expect(coverOf({ thumbnail, smallThumbnail })).toBe(thumbnail);
     expect(coverOf({ smallThumbnail })).toBe(smallThumbnail);

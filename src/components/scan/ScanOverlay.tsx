@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Headline } from '@/components/ui/Headline';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ScanScreenColors as C } from '@/constants/ScanScreenColors';
 import { BottomTabInset, Fonts } from '@/constants/theme';
@@ -52,9 +53,9 @@ export function ScanOverlay({
     <View style={StyleSheet.absoluteFill}>
       <View style={[styles.section, styles.top, { paddingTop: insets.top + 6 }]}>
         <View style={styles.header}>
-          <Text style={styles.screenTitle} accessibilityRole="header">
-            Scanner un livre
-          </Text>
+          <Headline size={24} onDark style={styles.screenTitle}>
+            Scanner *un livre*
+          </Headline>
           <Pressable
             onPress={onToggleTorch}
             accessibilityRole="switch"
@@ -185,12 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   screenTitle: {
-    color: C.onCamera,
-    fontFamily: Fonts.display,
-    fontSize: 22,
-    lineHeight: 28,
-    fontWeight: '700',
-    letterSpacing: -0.55,
+    letterSpacing: -0.6,
     textAlign: 'center',
   },
   torch: {
@@ -262,7 +258,7 @@ const styles = StyleSheet.create({
     right: 20,
     height: 2,
     borderRadius: 1,
-    backgroundColor: C.viewfinder,
+    backgroundColor: C.scanLine,
     boxShadow: `0 0 10px ${C.scanLineGlow}`,
   },
   bottom: {

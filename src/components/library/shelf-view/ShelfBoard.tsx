@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Palette } from '@/constants/theme';
 
-/** Dark wood board the books stand on. */
+/** Wooden board the books stand on. */
 export function ShelfBoard() {
   return (
     <View style={styles.wrapper} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   board: {
-    height: 11,
+    height: 7,
     backgroundColor: Palette.wood,
     experimental_backgroundImage:
       'linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0.25) 100%)',
