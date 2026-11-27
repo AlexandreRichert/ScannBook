@@ -42,6 +42,7 @@ export default function SignInScreen() {
       submitLabel={isSubmitting ? 'Connexion…' : 'Se connecter'}
       canSubmit={canSubmit}
       onSubmit={handleSubmit}
+      submitTestID="sign-in-submit"
       footer={
         <>
           <AuthPrompt question="Pas encore de compte ?">
@@ -51,6 +52,7 @@ export default function SignInScreen() {
         </>
       }>
       <TextField
+        testID="sign-in-email"
         label="Email"
         icon={FieldIcons.email}
         value={email}
@@ -63,6 +65,7 @@ export default function SignInScreen() {
         returnKeyType="next"
       />
       <TextField
+        testID="sign-in-password"
         label="Mot de passe"
         icon={FieldIcons.password}
         value={password}

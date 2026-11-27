@@ -93,6 +93,7 @@ export default function IsbnEntryScreen() {
           <View style={styles.fieldRow}>
             <View style={[styles.field, error !== null && styles.fieldError]}>
               <TextInput
+                testID="isbn-input"
                 ref={inputRef}
                 value={value}
                 onChangeText={change}
@@ -144,6 +145,7 @@ export default function IsbnEntryScreen() {
         </View>
 
         <PressableScale
+          testID="isbn-submit"
           onPress={submit}
           accessibilityRole="button"
           style={styles.submit}>

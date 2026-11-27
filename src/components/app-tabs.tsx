@@ -29,6 +29,7 @@ export default function AppTabs() {
         <TabBar>
           <TabTrigger name="index" href="/" asChild>
             <TabButton
+              testID="tab-home"
               label="Accueil"
               icon={{ ios: 'house', android: 'home', web: 'home' }}
               focusedIcon={{ ios: 'house.fill', android: 'home', web: 'home' }}
@@ -36,6 +37,7 @@ export default function AppTabs() {
           </TabTrigger>
           <TabTrigger name="library" href="/library" asChild>
             <TabButton
+              testID="tab-library"
               label="Bibliothèque"
               icon={{ ios: 'books.vertical', android: 'library_books', web: 'library_books' }}
               focusedIcon={{ ios: 'books.vertical.fill', android: 'library_books', web: 'library_books' }}
@@ -50,6 +52,7 @@ export default function AppTabs() {
           </TabTrigger>
           <TabTrigger name="profile" href="/profile" asChild>
             <TabButton
+              testID="tab-profile"
               label="Profil"
               icon={{ ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' }}
               focusedIcon={{ ios: 'person.crop.circle.fill', android: 'account_circle', web: 'account_circle' }}

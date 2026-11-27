@@ -30,6 +30,7 @@ export function ShelfPicker({
       <PressableScale
         haptic
         key={shelf}
+        testID={`shelf-${shelf}`}
         onPress={() => onChange(shelf)}
         disabled={disabled}
         accessibilityRole="radio"

@@ -7,7 +7,11 @@
     "icon": "./assets/images/icon.png",
     "scheme": "scannbook",
     "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.alexandrerichert.scannbook"
+    },
     "android": {
+      "package": "com.alexandrerichert.scannbook",
       "adaptiveIcon": {
         "backgroundColor": "#B08968",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -42,6 +46,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3fba9ccc-032e-4aaf-be3a-e16373d71f65"
+      }
+    },
+    "owner": "alexricherts-team"
   }
 }
