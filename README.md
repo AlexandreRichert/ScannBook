@@ -25,7 +25,17 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | **Could**        | Password reset · sorting · statistics                                                                                                                   |
 | **Out of scope** | Google/Apple sign-in · offline mode · sharing · ratings and reviews                                                                                     |
 
-> Screenshots will be added to `docs/screenshots/` as features ship.
+## Screenshots
+
+|                                Home                                 |                               Library                                |                                A shelf                                |
+| :-----------------------------------------------------------------: | :------------------------------------------------------------------: | :-------------------------------------------------------------------: |
+| <img src="docs/screenshots/home.jpg" width="220" alt="Home tab: a wall of covers, the reading figures and the book being read"> | <img src="docs/screenshots/library.jpg" width="220" alt="Library tab: the five shelves as cards of book spines"> | <img src="docs/screenshots/shelf.jpg" width="220" alt="The Read shelf: covers standing on wooden boards"> |
+
+|                              Book details                               |                            Without an account                             |                                Scanner                                 |
+| :---------------------------------------------------------------------: | :-----------------------------------------------------------------------: | :--------------------------------------------------------------------: |
+| <img src="docs/screenshots/book.jpg" width="220" alt="Book details: the cover over its own blurred backdrop, then publisher, year and pages"> | <img src="docs/screenshots/home-guest.jpg" width="220" alt="Home tab for a guest: scan or search a book, or sign in"> | <img src="docs/screenshots/scanner.jpg" width="220" alt="Scanner: the viewfinder, the scan line and the two other ways to find a book"> |
+
+Captured from the web build with sample data. The scanner is shown without the camera feed, which only runs on a phone.
 
 ## Stack
 
