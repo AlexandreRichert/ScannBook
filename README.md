@@ -191,4 +191,4 @@ Architecture decisions are recorded as ADRs in [docs/adr/](docs/adr/).
 | Member     | Role                       | GitHub                                                   |
 | ---------- | -------------------------- | -------------------------------------------------------- |
 | Alexandre  | Development, documentation | [@AlexandreRichert](https://github.com/AlexandreRichert) |
-| Louna      | Development                | [@Wysath](https://github.com/Wysath)                     |
+| Louna      | Development, documentation | [@Wysath](https://github.com/Wysath)                     |
