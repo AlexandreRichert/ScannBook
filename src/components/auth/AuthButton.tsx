@@ -9,12 +9,15 @@ type AuthButtonProps = {
   onPress: () => void;
   disabled?: boolean;
   icon?: SymbolViewProps['name'];
+  /** Stable id for end-to-end tests (Maestro). */
+  testID?: string;
 };
 
 /** Primary variant of the Figma « Bouton » component, with its top light gradient. */
-export function AuthButton({ label, onPress, disabled = false, icon }: AuthButtonProps) {
+export function AuthButton({ label, onPress, disabled = false, icon, testID }: AuthButtonProps) {
   return (
     <PressableScale
+      testID={testID}
       onPress={onPress}
       disabled={disabled}
       accessibilityRole="button"

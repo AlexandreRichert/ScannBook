@@ -111,6 +111,7 @@ export function Onboarding({ onDone }: { onDone: () => void }) {
       )}
 
       <Pressable
+        testID="onboarding-skip"
         onPress={onDone}
         accessibilityRole="button"
         accessibilityLabel="Passer la présentation"

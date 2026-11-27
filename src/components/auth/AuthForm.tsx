@@ -23,6 +23,8 @@ type AuthFormProps = PropsWithChildren<{
   /** Shows the title in the tomato header of the sign-in screen instead of above the form. */
   hero?: boolean;
   back?: { label: string; onPress: () => void };
+  /** Stable id of the submit button for end-to-end tests (Maestro). */
+  submitTestID?: string;
 }>;
 
 export function AuthForm({
@@ -35,6 +37,7 @@ export function AuthForm({
   footer,
   hero = false,
   back,
+  submitTestID,
   children,
 }: AuthFormProps) {
   const insets = useSafeAreaInsets();
@@ -84,7 +87,7 @@ export function AuthForm({
             {error ? <FieldError message={error} alert /> : null}
           </View>
           <View style={styles.actions}>
-            <AuthButton label={submitLabel} onPress={onSubmit} disabled={!canSubmit} />
+            <AuthButton label={submitLabel} onPress={onSubmit} disabled={!canSubmit} testID={submitTestID} />
             {footer}
           </View>
         </View>
