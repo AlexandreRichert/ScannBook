@@ -1,6 +1,6 @@
 # ADR-006: Ranking Search Results Locally from a Single Request
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-26
 
 ## Decision
@@ -64,6 +64,10 @@ Tested on real Google Books responses for "stephen king the outsider", "the outs
 - We only rank what Google returns in its first 40 results. A book missing from them cannot be found.
 - Books without an ISBN-13 can never be found by search.
 - The cache lives in memory only and empties when the app restarts.
+
+## Ownership
+
+The development team is responsible for the weights in `src/constants/Search.ts`, the ranking rules and their tests.
 
 ## Review
 

@@ -7,7 +7,7 @@
 
 We will use [Supabase](https://supabase.com/) for user accounts and for storing each user's library:
 
-- **Auth**: email and password sign-in. _Confirm email_ is turned off so that a new account can sign in right away during development and the demo.
+- **Auth**: email and password sign-in. _Confirm email_ is turned off so that a new account can sign in right away during development and the demo. An account is only needed for the library: scanning, search and book pages are open to guests (see ADR-007).
 - **Storage**: a Postgres table `books`, where every row belongs to one user (`user_id`). Its schema and security rules are versioned in `supabase/schema.sql`.
 - **Security**: Row Level Security is enabled on `books`, with four policies (read, add, update, delete) that only allow a user to touch their own rows.
 - **Client**: a single client in `src/data/Supabase.ts`, created with the public anon (publishable) key. The session is persisted with AsyncStorage, so the user stays signed in between launches. AsyncStorage was kept over `expo-sqlite/localStorage` (Expo's current recommendation) because it is bundled in Expo Go and needs no config plugin; switching later only changes the `storage` option.

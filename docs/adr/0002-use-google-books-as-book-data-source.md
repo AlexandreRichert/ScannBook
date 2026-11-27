@@ -1,6 +1,6 @@
 # ADR-002: Using Google Books as the Book Data Source
 
-- **Status**: Proposed
+- **Status**: Accepted
 - **Date**: 2026-11-24
 
 ## Decision
@@ -14,7 +14,7 @@ A lookup takes two requests:
 
 The response is validated by an adapter (`src/data/GoogleBooksAdapter.ts`) and mapped to the shared `BookInfo` type (`src/types/Book.ts`). The rest of the app never sees the raw Google Books format.
 
-Covers come from Google Books only. When there is none, the app shows a placeholder with the title. We do not add Open Library as a second cover source: it had none of the covers of our test books, and it would cost one more request per lookup.
+Covers come from Google Books only. The adapter takes the largest size the record lists (`medium`, then `small`, then the thumbnails), because the thumbnail alone is blurry on a phone screen. When there is none, the app shows a placeholder with the title. We do not add Open Library as a second cover source: it had none of the covers of our test books, and it would cost one more request per lookup.
 
 ## Background
 
@@ -57,7 +57,7 @@ Every `EXPO_PUBLIC_` variable is inlined in the JavaScript bundle, so the key is
 ## Consequences
 
 - No backend is needed to look books up.
-- Each lookup costs two requests: about 500 lookups per day with the default quota.
+- Each lookup costs two requests: about 500 lookups per day with the default quota. Title and author searches draw on the same quota, one request each (see ADR-006).
 - Only the title, the authors and the ISBN are guaranteed in `BookInfo`. Every screen must handle a missing cover, page count, publisher or description.
 - The key is public. If abuse becomes a problem, calls can move behind a server-side proxy (for example a Supabase Edge Function) without changing the screens, since they only depend on `BookInfo`.
 - Changing source later only means writing a new client and adapter that produce `BookInfo`.
