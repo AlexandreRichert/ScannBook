@@ -26,7 +26,9 @@ export const ScanScreenColors = {
   onCameraButton: 'rgba(28, 25, 23, 0.72)',
   /** Keeps the dark button visible over a dark scene. */
   onCameraButtonBorder: 'rgba(255, 255, 255, 0.45)',
-  viewfinder: Palette.accent,
-  scanLineGlow: 'rgba(237, 92, 59, 0.9)',
+  // Cream rather than the brown accent: the corners must stand out on any scene the camera shows
+  viewfinder: Palette.accentSoft,
+  scanLine: Palette.accent,
+  scanLineGlow: 'rgba(176, 137, 104, 0.9)',
   error: 'rgba(179, 38, 30, 0.92)',
 } as const;

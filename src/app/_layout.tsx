@@ -31,17 +31,15 @@ export default function RootLayout() {
 }
 
 function RootNavigator() {
-  const { session, isLoading, isRecovering } = useAuth();
+  const { isSignedIn, isLoading } = useAuth();
   const [fontsLoaded, fontError] = useFonts(AppFonts);
-  const isSignedIn = !!session && !isRecovering;
   // A font that fails to load falls back to the system font rather than blocking the app
   const fontsReady = fontsLoaded || !!fontError;
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={isSignedIn} redirectTo="/sign-in">
-          <Stack.Screen name="(app)" />
-        </Stack.Protected>
+        {/* Open to guests: scanning and book screens need no account, each screen decides what a guest sees */}
+        <Stack.Screen name="(app)" />
         <Stack.Protected guard={!isSignedIn}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>

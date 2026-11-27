@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SectionTitle } from '@/components/profile/SettingsGroup';
-import { Fonts, Palette } from '@/constants/theme';
+import { Fonts, Palette, Space } from '@/constants/theme';
 import { useReadingStats } from '@/hooks/useReadingStats';
 import { spineFor } from '@/lib/Spines';
 
@@ -123,15 +123,13 @@ function fitSpines(isbns: string[], width: number) {
 
 const styles = StyleSheet.create({
   section: {
-    gap: 8,
+    gap: Space.block,
   },
   card: {
-    gap: 16,
-    padding: 16,
+    gap: Space.card,
+    padding: Space.card,
     borderRadius: 6,
-    backgroundColor: Palette.paperRaised,
-    borderWidth: 1,
-    borderColor: Palette.line,
+    backgroundColor: Palette.accentSoft,
   },
   loading: {
     height: 140,
@@ -197,7 +195,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   plank: {
-    height: 6,
+    height: 4,
     borderRadius: 2,
     backgroundColor: Palette.wood,
     experimental_backgroundImage:

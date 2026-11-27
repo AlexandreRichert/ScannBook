@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     borderColor: Palette.lineStrong,
   },
   plank: {
-    height: 6,
+    height: 4,
     borderRadius: 2,
     backgroundColor: Palette.wood,
     experimental_backgroundImage:

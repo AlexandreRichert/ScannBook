@@ -3,7 +3,7 @@ export const SHELVES = ['wishlist', 'to_read', 'reading', 'read', 'abandoned'] a
 export type Shelf = (typeof SHELVES)[number];
 
 export const SHELF_LABELS: Record<Shelf, string> = {
-  wishlist: 'Envies',
+  wishlist: 'Wishlist',
   to_read: 'À lire',
   reading: 'En cours',
   read: 'Lu',

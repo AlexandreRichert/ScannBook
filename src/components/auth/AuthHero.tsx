@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DecorCoverView, type DecorCover } from '@/components/decor/DecorCover';
+import { LogoMark } from '@/components/Logo';
 import { Fonts, Palette } from '@/constants/theme';
 
 type PlacedCover = DecorCover & { centerX: number; centerY: number; rotate: number };
@@ -30,7 +32,7 @@ const STAGE_WIDTH = 390;
 // Height of the mockup hero below its 54 pt status bar, the real inset is added on top
 const STAGE_HEIGHT = 386;
 
-/** Tomato header of the sign-in screen: fanned book covers above the app title, ending on a shelf. */
+/** Brown header of the sign-in screen and of the guest home: fanned book covers above the app title. */
 export function AuthHero({ title, subtitle }: { title: string; subtitle?: string }) {
   const insets = useSafeAreaInsets();
 
@@ -38,36 +40,42 @@ export function AuthHero({ title, subtitle }: { title: string; subtitle?: string
     <View>
       <View style={styles.overscroll} />
       <View style={[styles.hero, { paddingTop: insets.top }]}>
-        <View style={styles.light} />
         <View style={styles.stage} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          {[...SIDE_COVERS, FRONT_COVER].map((cover) => (
-            <Cover key={cover.title} cover={cover} />
+          {[...SIDE_COVERS, FRONT_COVER].map((cover, index) => (
+            <Cover key={cover.title} cover={cover} order={index} />
           ))}
         </View>
-        <View style={styles.titleBlock}>
-          <Text style={styles.title} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>
-            {title}
-          </Text>
+        <Animated.View entering={FadeIn.delay(260).duration(320)} style={styles.titleBlock}>
+          <View style={styles.titleRow}>
+            <LogoMark size={44} />
+            <Text style={styles.title} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit>
+              {title}
+            </Text>
+          </View>
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
-        </View>
+        </Animated.View>
       </View>
-      <View style={styles.plank} />
     </View>
   );
 }
 
-function Cover({ cover }: { cover: PlacedCover }) {
+// The covers fan out one after the other, outer ones first. The tilt sits on the
+// inner view because the entering animation drives the outer one's transform.
+function Cover({ cover, order }: { cover: PlacedCover; order: number }) {
   const height = cover.width * 1.5;
   return (
-    <DecorCoverView
-      cover={cover}
+    <Animated.View
+      entering={FadeInDown.delay(order * 70)
+        .springify()
+        .damping(16)
+        .stiffness(190)}
       style={{
         position: 'absolute',
         left: STAGE_WIDTH / 2 + cover.centerX - cover.width / 2,
         top: cover.centerY - height / 2,
-        transform: [{ rotate: `${cover.rotate}deg` }],
-      }}
-    />
+      }}>
+      <DecorCoverView cover={cover} style={{ transform: [{ rotate: `${cover.rotate}deg` }] }} />
+    </Animated.View>
   );
 }
 
@@ -75,9 +83,8 @@ const styles = StyleSheet.create({
   hero: {
     overflow: 'hidden',
     backgroundColor: Palette.accent,
-    experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(0, 0, 0, 0.1) 100%)',
   },
-  // Keeps the iOS bounce above the hero in tomato instead of showing the paper background
+  // Keeps the iOS bounce above the hero in brown instead of showing the paper background
   overscroll: {
     position: 'absolute',
     left: 0,
@@ -85,15 +92,6 @@ const styles = StyleSheet.create({
     bottom: '100%',
     height: 1000,
     backgroundColor: Palette.accent,
-  },
-  light: {
-    position: 'absolute',
-    alignSelf: 'center',
-    top: -150,
-    width: 600,
-    height: 600,
-    experimental_backgroundImage:
-      'radial-gradient(circle closest-side, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%)',
   },
   stage: {
     width: STAGE_WIDTH,
@@ -109,7 +107,14 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingHorizontal: 24,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+  },
   title: {
+    flexShrink: 1,
     color: Palette.inkInverse,
     fontFamily: Fonts.display,
     fontSize: 50,
@@ -119,7 +124,7 @@ const styles = StyleSheet.create({
     letterSpacing: -2.25,
     textAlign: 'center',
   },
-  // White on tomato is 3.4:1, which WCAG only accepts for large text (19 px bold and up)
+  // White on the light brown is 3.2:1, which WCAG only accepts for large text (19 px bold and up)
   subtitle: {
     color: Palette.inkInverse,
     fontFamily: Fonts.display,
@@ -128,11 +133,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.3,
     textAlign: 'center',
-  },
-  plank: {
-    height: 9,
-    backgroundColor: Palette.wood,
-    experimental_backgroundImage:
-      'linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 30%, rgba(0, 0, 0, 0.2) 100%)',
   },
 });

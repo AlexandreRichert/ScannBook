@@ -4,10 +4,13 @@ import { SymbolView } from 'expo-symbols';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SignInPrompt } from '@/components/guest/SignInPrompt';
+import { Logo } from '@/components/Logo';
+import { Headline } from '@/components/ui/Headline';
 import { ReadingStatsCard } from '@/components/profile/ReadingStatsCard';
 import { SettingsGroup, SettingsRow } from '@/components/profile/SettingsGroup';
 import { ShelfCounts } from '@/components/profile/ShelfCounts';
-import { BottomTabInset, Fonts, MaxContentWidth, Palette } from '@/constants/theme';
+import { BottomTabInset, Fonts, MaxContentWidth, Palette, Space } from '@/constants/theme';
 import { useAuth } from '@/hooks/useAuth';
 import { useLibrary } from '@/hooks/useLibrary';
 import { confirmDestructive } from '@/lib/ConfirmDestructive';
@@ -15,6 +18,20 @@ import { fullName, profileName } from '@/lib/ProfileName';
 import { countByShelf, type Shelf } from '@/lib/Shelves';
 
 export default function ProfileScreen() {
+  const { isSignedIn } = useAuth();
+  if (!isSignedIn) {
+    return (
+      <SignInPrompt
+        icon={{ ios: 'person.crop.circle', android: 'account_circle', web: 'account_circle' }}
+        title="Ton profil"
+        body="Connecte-toi pour retrouver tes statistiques de lecture et régler ton compte."
+      />
+    );
+  }
+  return <Profile />;
+}
+
+function Profile() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session, signOut } = useAuth();
@@ -35,7 +52,7 @@ export default function ProfileScreen() {
   const changePassword = async () => {
     const confirmed = await confirmDestructive(
       'Changer de mot de passe',
-      'Tu vas être déconnecté. Sur l’écran de connexion, choisis « Mot de passe oublié ? » pour recevoir un code par email.',
+      'Tu vas être déconnecté. Choisis ensuite « Se connecter », puis « Mot de passe oublié ? » pour recevoir un code par email.',
       'Continuer',
     );
     if (confirmed) await signOut();
@@ -52,15 +69,19 @@ export default function ProfileScreen() {
       style={styles.screen}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top + 24, paddingBottom: insets.bottom + BottomTabInset + 24 },
+        { paddingTop: insets.top + Space.block, paddingBottom: insets.bottom + BottomTabInset + Space.gutter },
       ]}>
       <StatusBar style="dark" />
+      <View style={styles.bar}>
+        <Logo />
+      </View>
+      <Headline>Mon *profil*</Headline>
       <View style={styles.identity}>
         <View style={styles.avatar} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Text style={styles.initial}>{initial}</Text>
         </View>
         <View style={styles.identityText}>
-          <Text style={styles.name} numberOfLines={1} accessibilityRole="header">
+          <Text style={styles.name} numberOfLines={1}>
             {name}
           </Text>
           <Text style={styles.email} numberOfLines={1}>
@@ -136,33 +157,43 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.paper,
   },
   content: {
-    gap: 28,
+    gap: Space.section,
     width: '100%',
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Space.gutter,
+  },
+  // Same height as the bar of the home tab, so the logo sits at the same place on every tab
+  bar: {
+    justifyContent: 'center',
+    minHeight: 40,
+    marginBottom: Space.item - Space.section,
   },
   identity: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: Space.card,
+    // Sits right under the page title, as its first card
+    marginTop: Space.block - Space.section,
+    padding: Space.card,
+    borderRadius: 6,
+    backgroundColor: Palette.accentSoft,
   },
   avatar: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Palette.accentStrong,
-    experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.16) 0%, rgba(0, 0, 0, 0.12) 100%)',
   },
   initial: {
     color: Palette.inkInverse,
     fontFamily: Fonts.display,
-    fontSize: 30,
-    lineHeight: 36,
+    fontSize: 24,
+    lineHeight: 30,
     fontWeight: '700',
-    letterSpacing: -1.05,
+    letterSpacing: -0.8,
   },
   identityText: {
     flex: 1,
@@ -171,10 +202,10 @@ const styles = StyleSheet.create({
   name: {
     color: Palette.ink,
     fontFamily: Fonts.display,
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 20,
+    lineHeight: 26,
     fontWeight: '700',
-    letterSpacing: -0.55,
+    letterSpacing: -0.4,
   },
   email: {
     color: Palette.inkSecondary,

@@ -16,7 +16,7 @@ A course project built in one week, from November 24 to 27, 2026, with a final p
 
 ## Features
 
-Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (labelled _Envies_, _À lire_, _En cours_, _Lu_, _Abandonné_ in the app, whose UI is in French). A book is always on exactly one shelf, and moving it to another shelf updates its reading dates automatically.
+Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (labelled _Wishlist_, _À lire_, _En cours_, _Lu_, _Abandonné_ in the app, whose UI is in French). A book is always on exactly one shelf, and moving it to another shelf updates its reading dates automatically.
 
 | Priority         | Features                                                                                                                                                |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |

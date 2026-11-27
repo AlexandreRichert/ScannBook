@@ -1,13 +1,15 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { AuthForm } from '@/components/auth/AuthForm';
 import { AuthLink, AuthPrompt } from '@/components/auth/AuthLink';
 import { FieldIcons, TextField } from '@/components/ui/TextField';
 import { useAuth } from '@/hooks/useAuth';
+import { armReturnToBook, disarmReturnToBook } from '@/lib/ReturnAfterSignIn';
 import { validateSignUp, type SignUpErrors } from '@/lib/SignUpValidation';
 
 export default function SignUpScreen() {
+  const { book } = useLocalSearchParams<{ book?: string }>();
   const { signUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -26,13 +28,16 @@ export default function SignUpScreen() {
     if (Object.keys(errors).length > 0) return;
 
     setIsSubmitting(true);
-    setError(await signUp(email, password));
+    armReturnToBook(book);
+    const failure = await signUp(email, password);
+    if (failure) disarmReturnToBook();
+    setError(failure);
     setIsSubmitting(false);
   }
 
   function goToSignIn() {
     if (router.canGoBack()) router.back();
-    else router.replace('/sign-in');
+    else router.replace({ pathname: '/sign-in', params: book ? { book } : {} });
   }
 
   return (

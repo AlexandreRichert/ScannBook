@@ -1,20 +1,33 @@
-import { useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
+import { Fragment, useState, type ReactNode } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BookCover } from '@/components/BookCover';
-import { Fonts, Palette } from '@/constants/theme';
-import { spineFor } from '@/lib/Spines';
+import { Fonts, Palette, Space } from '@/constants/theme';
 import type { BookInfo } from '@/types/Book';
 
-const COVER_WIDTH = 136;
+const COVER_WIDTH = 164;
+const COVER_HEIGHT = COVER_WIDTH * 1.5;
+/** How far the cover hangs below the tinted band, onto the paper. */
+const COVER_OVERHANG = 76;
+const BAND_PADDING = Space.block;
+/** Radius of the page where it rises over the band, like the top of a sheet. */
+const SHEET_RADIUS = 24;
 /** About 3 lines at 15 px on a phone: shorter descriptions are shown whole. */
 const COLLAPSIBLE_DESCRIPTION_LENGTH = 140;
-/** Longer titles drop to the smaller display size so they stay on two lines. */
-const SHORT_TITLE_LENGTH = 14;
+
+export const BOOK_SHEET_GUTTER = Space.gutter;
+/** Top padding the book screen gives its content, which the band climbs back over to touch the header. */
+export const BOOK_SHEET_TOP = 8;
+/** Height of the navigation bar under the status bar: the band runs behind it, the header being transparent. */
+export const BOOK_HEADER_BAR = Platform.OS === 'ios' ? 44 : 56;
+// Light: the cover stays recognizable behind its sharp copy, as a soft echo of it
+const BACKDROP_BLUR = 10;
 
 /**
- * Book details laid out as the « Fiche livre » mockups (Figma frames 07 and 10).
+ * Book details: a tinted band the cover hangs out of, then everything centered under it.
  * `children` (the library actions) sit between the title and the summary, so the main action needs no scrolling.
  * `footer` comes last, for the destructive action.
  */
@@ -25,64 +38,56 @@ export function BookSheet({
   footer,
 }: {
   book: BookInfo;
-  /** Shown above the metadata, e.g. « Dans ma bibliothèque ». */
+  /** Shown under the authors, e.g. « Dans mes livres ». */
   badge?: ReactNode;
   children?: ReactNode;
   footer?: ReactNode;
 }) {
-  const metadata = [
+  const facts = [
     { label: 'Éditeur', value: book.publisher },
     { label: 'Parution', value: book.publishedDate?.slice(0, 4) },
     { label: 'Pages', value: book.pageCount?.toString() },
-  ].filter((item): item is { label: string; value: string } => item.value !== undefined);
+  ].filter((fact): fact is { label: string; value: string } => fact.value !== undefined);
 
   return (
     <View style={styles.sheet}>
-      <View style={styles.hero}>
-        <View style={styles.stand}>
-          {/* The book drops onto its shelf; the tilt sits on the inner view because entering drives the outer transform */}
-          <Animated.View entering={FadeInDown.springify().damping(15).stiffness(180)}>
-          <View style={styles.book}>
-            <View style={[styles.spine, { backgroundColor: spineFor(book.isbn13).color }]}>
-              <View style={[styles.fillet, styles.filletTop]} />
-              <View style={[styles.fillet, styles.filletBottom]} />
-            </View>
-            <BookCover
-              key={book.isbn13}
-              isbn13={book.isbn13}
-              title={book.title}
-              authors={book.authors}
-              coverUrl={book.coverUrl}
-              width={COVER_WIDTH}
-            />
-          </View>
-          </Animated.View>
-          <View style={styles.shelf} />
-        </View>
-
-        <Animated.View entering={FadeIn.delay(120).duration(260)} style={styles.metadata}>
-          {badge}
-          {metadata.map((item, index) => (
-            <View key={item.label} style={styles.metadataGroup}>
-              {(index > 0 || badge !== undefined) && <View style={styles.rule} />}
-              <Text style={styles.caps}>{item.label}</Text>
-              <Text style={styles.metadataValue} numberOfLines={2}>
-                {item.value}
-              </Text>
-            </View>
-          ))}
+      <BookBand backdrop={book.coverUrl}>
+        <Animated.View entering={FadeInDown.duration(320)}>
+          <BookCover
+            key={book.isbn13}
+            isbn13={book.isbn13}
+            title={book.title}
+            authors={book.authors}
+            coverUrl={book.coverUrl}
+            width={COVER_WIDTH}
+          />
         </Animated.View>
-      </View>
+      </BookBand>
 
-      <Animated.View entering={FadeInDown.delay(90).duration(300)} style={styles.heading}>
-        <Text
-          style={[styles.title, book.title.length <= SHORT_TITLE_LENGTH && styles.titleLarge]}
-          accessibilityRole="header">
+      <Animated.View entering={FadeIn.delay(90).duration(300)} style={styles.heading}>
+        <Text style={styles.title} accessibilityRole="header">
           {book.title}
         </Text>
         {book.subtitle && <Text style={styles.subtitle}>{book.subtitle}</Text>}
         <Text style={styles.authors}>{book.authors.length > 0 ? book.authors.join(', ') : 'Auteur inconnu'}</Text>
+        {badge !== undefined && <View style={styles.badge}>{badge}</View>}
       </Animated.View>
+
+      {facts.length > 0 && (
+        <Animated.View entering={FadeIn.delay(140).duration(300)} style={styles.facts}>
+          {facts.map((fact, index) => (
+            <Fragment key={fact.label}>
+              {index > 0 && <View style={styles.factRule} />}
+              <View style={styles.fact}>
+                <Text style={styles.factLabel}>{fact.label}</Text>
+                <Text style={styles.factValue} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
+                  {fact.value}
+                </Text>
+              </View>
+            </Fragment>
+          ))}
+        </Animated.View>
+      )}
 
       {children}
 
@@ -93,13 +98,42 @@ export function BookSheet({
   );
 }
 
+/**
+ * The band at the top of a book screen, running behind the transparent header. With a `backdrop`
+ * it is the cover itself, blurred and washed out; without, a plain cream. Its child, the sharp
+ * cover, hangs below it. Shared with the skeleton.
+ */
+export function BookBand({ children, backdrop }: { children: ReactNode; backdrop?: string }) {
+  const insets = useSafeAreaInsets();
+  const header = insets.top + BOOK_HEADER_BAR;
+
+  return (
+    <View
+      style={[
+        styles.band,
+        { height: header + COVER_HEIGHT - COVER_OVERHANG + BAND_PADDING, paddingTop: header + BAND_PADDING },
+      ]}>
+      <View style={styles.overscroll} />
+      {backdrop !== undefined && (
+        // Clipped on its own: the band itself must let the cover hang out of it
+        <View style={styles.backdrop}>
+          <Image source={backdrop} style={StyleSheet.absoluteFill} contentFit="cover" blurRadius={BACKDROP_BLUR} />
+          <View style={styles.backdropVeil} />
+        </View>
+      )}
+      <View style={styles.lip} />
+      {children}
+    </View>
+  );
+}
+
 function Description({ text }: { text: string }) {
   const collapsible = text.length > COLLAPSIBLE_DESCRIPTION_LENGTH;
   const [expanded, setExpanded] = useState(false);
 
   return (
     <View style={styles.description}>
-      <Text style={styles.caps} accessibilityRole="header">
+      <Text style={styles.sectionTitle} accessibilityRole="header">
         Résumé
       </Text>
       <Text style={styles.descriptionText} numberOfLines={collapsible && !expanded ? 3 : undefined}>
@@ -118,110 +152,105 @@ function Description({ text }: { text: string }) {
   );
 }
 
-export const BOOK_SHEET_GUTTER = 24;
-
 const styles = StyleSheet.create({
   sheet: {
-    gap: 14,
+    gap: Space.card,
   },
-  hero: {
-    flexDirection: 'row',
-    gap: 12,
-    // The cover stand runs to the left edge of the screen, past the content padding
-    marginLeft: -BOOK_SHEET_GUTTER,
-  },
-  stand: {
-    width: 214,
-    height: 226,
-    justifyContent: 'flex-end',
+  // Bleeds over the screen padding on three sides, up to the header of the same color
+  band: {
     alignItems: 'center',
-    borderTopRightRadius: 6,
-    borderBottomRightRadius: 6,
-    backgroundColor: Palette.paperSunken,
+    marginTop: -BOOK_SHEET_TOP,
+    marginHorizontal: -BOOK_SHEET_GUTTER,
+    marginBottom: COVER_OVERHANG,
+    backgroundColor: Palette.accentSoft,
   },
-  book: {
-    flexDirection: 'row',
-    marginBottom: 7,
-    transform: [{ rotate: '-2deg' }],
-  },
-  spine: {
-    width: 15,
-    borderTopLeftRadius: 2,
-    borderBottomLeftRadius: 2,
-    experimental_backgroundImage:
-      'linear-gradient(90deg, rgba(0, 0, 0, 0.3) 0%, rgba(255, 255, 255, 0.16) 40%, rgba(0, 0, 0, 0.26) 100%)',
-  },
-  fillet: {
-    position: 'absolute',
-    left: 2,
-    width: 11,
-    height: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
-  },
-  filletTop: {
-    top: 16,
-  },
-  filletBottom: {
-    bottom: 18,
-  },
-  shelf: {
+  // Keeps the iOS bounce above the band in its color instead of showing the paper background
+  overscroll: {
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
-    height: 7,
-    borderTopRightRadius: 3,
-    borderBottomRightRadius: 3,
-    backgroundColor: Palette.wood,
-    experimental_backgroundImage:
-      'linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0.25) 100%)',
+    bottom: '100%',
+    height: 1000,
+    backgroundColor: Palette.accentSoft,
   },
-  metadata: {
-    flex: 1,
-    paddingTop: 6,
-    paddingRight: BOOK_SHEET_GUTTER - 8,
-    gap: 10,
+  backdrop: {
+    ...StyleSheet.absoluteFill,
+    overflow: 'hidden',
   },
-  metadataGroup: {
-    gap: 2,
+  // White over the blur: the back button and the cover stay readable on any cover
+  backdropVeil: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
-  rule: {
-    height: 1,
-    marginBottom: 10,
+  facts: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Palette.line,
+  },
+  factRule: {
+    width: 1,
+    marginVertical: Space.block,
     backgroundColor: Palette.line,
   },
-  caps: {
-    color: Palette.inkTertiary,
-    fontFamily: Fonts.display,
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: '500',
-    letterSpacing: 0.88,
-    textTransform: 'uppercase',
+  fact: {
+    flex: 1,
+    alignItems: 'center',
+    gap: Space.tight,
+    paddingVertical: Space.block,
+    paddingHorizontal: Space.item,
   },
-  metadataValue: {
+  factLabel: {
+    color: Palette.inkSecondary,
+    fontFamily: Fonts.body,
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: '500',
+  },
+  factValue: {
     color: Palette.ink,
     fontFamily: Fonts.display,
     fontSize: 16,
     lineHeight: 20,
     fontWeight: '700',
     letterSpacing: -0.16,
+    textAlign: 'center',
   },
-  heading: {
-    gap: 2,
+  // The page color, rounded, over the bottom of the band: the content reads as a sheet laid on it
+  lip: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: SHEET_RADIUS,
+    borderTopLeftRadius: SHEET_RADIUS,
+    borderTopRightRadius: SHEET_RADIUS,
+    backgroundColor: Palette.paper,
   },
-  title: {
+  sectionTitle: {
     color: Palette.ink,
     fontFamily: Fonts.display,
-    fontSize: 30,
-    lineHeight: 36,
+    fontSize: 20,
+    lineHeight: 26,
     fontWeight: '700',
-    letterSpacing: -1.05,
+    letterSpacing: -0.4,
   },
-  titleLarge: {
-    fontSize: 50,
-    lineHeight: 58,
-    letterSpacing: -2.25,
+  heading: {
+    alignItems: 'center',
+    gap: Space.tight,
+  },
+  title: {
+    marginTop: Space.tight,
+    color: Palette.ink,
+    fontFamily: Fonts.display,
+    fontSize: 28,
+    lineHeight: 34,
+    fontWeight: '700',
+    letterSpacing: -0.9,
+    textAlign: 'center',
+  },
+  badge: {
+    marginTop: Space.item,
   },
   subtitle: {
     color: Palette.inkSecondary,
@@ -229,16 +258,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
     fontWeight: '500',
+    textAlign: 'center',
   },
   authors: {
     color: Palette.inkSecondary,
     fontFamily: Fonts.body,
     fontSize: 16,
     lineHeight: 24,
+    textAlign: 'center',
   },
   description: {
-    gap: 8,
-    marginTop: 14,
+    gap: Space.item,
+    marginTop: Space.card,
   },
   descriptionText: {
     color: Palette.inkSecondary,

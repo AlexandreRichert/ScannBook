@@ -24,7 +24,7 @@ const STEPS: { title: string; body: string; art: ReactNode }[] = [
   },
   {
     title: 'Range par piles',
-    body: 'À lire, en cours, lu, envies : chaque livre trouve sa place sur ton étagère.',
+    body: 'À lire, en cours, lu, wishlist : chaque livre trouve sa place sur ton étagère.',
     art: <ShelvesArt />,
   },
   {
@@ -34,7 +34,7 @@ const STEPS: { title: string; body: string; art: ReactNode }[] = [
   },
 ];
 
-// Mockup 18: the tomato stage is 414 pt tall under the status bar
+// Mockup 18: the brown stage is 414 pt tall under the status bar
 const ART_HEIGHT = 414;
 // Room left for the step text, the dots and the button below the stage
 const TEXT_AREA = 360;
