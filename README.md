@@ -34,12 +34,14 @@ Five shelves: **Wishlist**, **To read**, **Reading**, **Read**, **Abandoned** (l
 | Platform             | React Native (iOS + Android, a single codebase)                    | [0001](docs/adr/0001-adopt-react-native.md)                   |
 | Framework            | Expo SDK 58, tested on a phone with Expo Go                        | [0001](docs/adr/0001-adopt-react-native.md)                   |
 | Navigation           | Expo Router: `(auth)` / `(app)` groups, tabs + Stack               | -                                                             |
+| Guest access         | App open without an account, the library needs one                 | [0007](docs/adr/0007-open-the-app-without-an-account.md)      |
+| Tab bar              | Our own bar on the headless tabs of `expo-router/ui`               | [0008](docs/adr/0008-custom-tab-bar.md)                       |
 | Language             | Strict TypeScript                                                  | [0001](docs/adr/0001-adopt-react-native.md)                   |
 | Accounts and storage | Supabase: email/password Auth + Postgres with Row Level Security   | [0003](docs/adr/0003-library-supabase.md)                     |
 | Book data            | Google Books API v1 (`fetch` + adapter)                            | [0002](docs/adr/0002-use-google-books-as-book-data-source.md) |
 | Scanning             | `expo-camera` (`CameraView` + `barcodeScannerSettings`)            | -                                                             |
 | Password reset       | 6-digit email code, sent through custom SMTP (project Gmail)       | [0004](docs/adr/0004-password-reset-with-email-code.md)       |
-| Reading dates        | Set automatically when a book changes shelf                        | [0005](docs/adr/0005-reading-dates-follow-the-shelf.md)       |
+| Reading dates        | Set when a book changes shelf, editable on the book page           | [0005](docs/adr/0005-reading-dates-follow-the-shelf.md)       |
 | Date picker          | `@expo/ui/community/datetime-picker` (included in Expo Go)         | -                                                             |
 | Book search          | One Google Books request, local relevance scoring, in-memory cache | [0006](docs/adr/0006-search-relevance-scoring.md)             |
 
