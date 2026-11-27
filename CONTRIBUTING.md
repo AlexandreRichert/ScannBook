@@ -106,6 +106,7 @@ pnpm test:watch    # re-run tests on file changes
 - Unit tests cover pure functions in `src/lib/` and adapters in `src/data/`: one input, one expected output, no network.
 - Component tests find elements the way a screen reader does, with `screen.getByRole('button', { name: '…' })`, and use `userEvent` to press or type. `render` is async: always `await render(...)`.
 - Callbacks are `jest.fn()`. A component test never calls Supabase or Google Books.
+- Reanimated does not load under Jest. For a component built on `PressableScale`, add `jest.mock('@/components/ui/PressableScale')`: it swaps in a plain `Pressable` from `src/components/ui/__mocks__/`, with the same behavior and accessibility props.
 - `test(<scope>): …` is the commit type for a change that only adds or updates tests.
 
 ## Code conventions
