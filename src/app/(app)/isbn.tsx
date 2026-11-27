@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     height: 56,
     paddingHorizontal: 24,
     borderRadius: 4,
-    backgroundColor: C.primary,
+    backgroundColor: C.action,
     experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
     alignItems: 'center',
     justifyContent: 'center',

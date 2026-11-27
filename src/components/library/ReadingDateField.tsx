@@ -42,7 +42,7 @@ export function ReadingDateField({
     <SymbolView
       name={{ ios: 'calendar', android: 'calendar_today', web: 'calendar_today' }}
       size={18}
-      tintColor={Palette.ink}
+      tintColor={Palette.inkSecondary}
     />
   );
 
@@ -57,7 +57,9 @@ export function ReadingDateField({
             mode="date"
             display="compact"
             locale="fr_FR"
-            accentColor={Palette.ink}
+            // The app is light only: without this the system draws the date in white on a dark phone
+            themeVariant="light"
+            accentColor={Palette.accentStrong}
             minimumDate={minimumDate}
             maximumDate={maximumDate}
             disabled={disabled}
@@ -92,7 +94,8 @@ export function ReadingDateField({
           value={value ? parseDay(value) : maximumDate}
           mode="date"
           presentation="dialog"
-          accentColor={Palette.ink}
+          themeVariant="light"
+          accentColor={Palette.accentStrong}
           minimumDate={minimumDate}
           maximumDate={maximumDate}
           onValueChange={(_, date) => select(date)}
@@ -113,9 +116,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 6,
-    backgroundColor: Palette.paperRaised,
-    borderWidth: 1,
-    borderColor: Palette.line,
+    // Sunken rather than white: the system date pill is a pale grey that disappears on white
+    backgroundColor: Palette.paperSunken,
   },
   text: {
     flex: 1,

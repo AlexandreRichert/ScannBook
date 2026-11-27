@@ -1,31 +1,37 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
 
-const storageKey = (userId: string) => `onboarding-done:${userId}`;
+const GUEST = 'guest';
+const storageKey = (viewer: string) => `onboarding-done:${viewer}`;
 
-/** Whether the « Premiers pas » still have to be shown to this account on this device. */
+/**
+ * Whether the « Premiers pas » still have to be shown on this device. A guest
+ * sees them once, and signing in afterwards does not replay them.
+ */
 export function useOnboarding(userId: string | undefined) {
-  const [state, setState] = useState<{ userId: string; done: boolean } | null>(null);
+  const viewer = userId ?? GUEST;
+  const [state, setState] = useState<{ viewer: string; done: boolean } | null>(null);
 
   useEffect(() => {
-    if (!userId) return;
     let cancelled = false;
-    AsyncStorage.getItem(storageKey(userId)).then(
-      (value) => !cancelled && setState({ userId, done: value === 'true' }),
+    AsyncStorage.multiGet([storageKey(GUEST), storageKey(viewer)]).then(
+      (entries) => !cancelled && setState({ viewer, done: entries.some(([, value]) => value === 'true') }),
       // Better to skip the intro than to block the app on a storage error
-      () => !cancelled && setState({ userId, done: true }),
+      () => !cancelled && setState({ viewer, done: true }),
     );
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [viewer]);
 
   const finish = useCallback(() => {
-    if (!userId) return;
-    setState({ userId, done: true });
-    AsyncStorage.setItem(storageKey(userId), 'true').catch(() => {});
-  }, [userId]);
+    setState({ viewer, done: true });
+    AsyncStorage.multiSet([
+      [storageKey(GUEST), 'true'],
+      [storageKey(viewer), 'true'],
+    ]).catch(() => {});
+  }, [viewer]);
 
-  const needsOnboarding = !!userId && state?.userId === userId && !state.done;
+  const needsOnboarding = state?.viewer === viewer && !state.done;
   return { needsOnboarding, finish };
 }

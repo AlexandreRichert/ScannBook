@@ -37,7 +37,7 @@ export function ShelfPicker({
         accessibilityState={{ checked: selected, disabled }}
         style={[styles.chip, selected && styles.selected]}>
         <View style={[styles.dot, { backgroundColor: ShelfColors[shelf] }]} />
-        <Text style={[styles.label, selected && styles.selectedLabel]}>
+        <Text style={styles.label}>
           {counts ? `${SHELF_LABELS[shelf]} · ${counts[shelf]}` : SHELF_LABELS[shelf]}
         </Text>
       </PressableScale>
@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
     borderColor: Palette.line,
   },
   selected: {
-    borderColor: Palette.ink,
-    backgroundColor: Palette.ink,
+    borderColor: Palette.accent,
+    backgroundColor: Palette.accentSoft,
   },
   dot: {
     width: 8,
@@ -100,8 +100,5 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontWeight: '700',
     letterSpacing: -0.07,
-  },
-  selectedLabel: {
-    color: Palette.inkInverse,
   },
 });

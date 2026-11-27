@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 4,
     minHeight: 56,
-    backgroundColor: Palette.ink,
+    backgroundColor: Palette.accentStrong,
   },
   fullWidth: {
     alignSelf: 'stretch',

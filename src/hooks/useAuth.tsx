@@ -8,6 +8,8 @@ import type { ProfileName } from '@/lib/ProfileName';
 
 type AuthContextValue = {
   session: Session | null;
+  /** False for a guest, and while a recovery code has opened a session that has no new password yet. */
+  isSignedIn: boolean;
   isLoading: boolean;
   isRecovering: boolean;
   /** Resolves to a French error message, or null on success. */
@@ -92,6 +94,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     <AuthContext
       value={{
         session,
+        isSignedIn: !!session && !isRecovering,
         isLoading,
         isRecovering,
         signIn,

@@ -4,11 +4,11 @@ import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { Palette } from '@/constants/theme';
 
 /** `ratio` between 0 and 1. */
-export function ProgressBar({ ratio }: { ratio: number }) {
+export function ProgressBar({ ratio, trackColor }: { ratio: number; trackColor?: string }) {
   const percent = Math.round(ratio * 100);
   return (
     <View
-      style={styles.track}
+      style={[styles.track, trackColor !== undefined && { backgroundColor: trackColor }]}
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: percent, text: `${percent} %` }}>
       <View style={[styles.fill, { width: `${percent}%` }]} />

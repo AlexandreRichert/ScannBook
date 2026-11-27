@@ -3,10 +3,12 @@ import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Logo } from '@/components/Logo';
 import { ScanIllustration } from '@/components/scan/ScanIllustration';
+import { Headline } from '@/components/ui/Headline';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { ScanScreenColors as C } from '@/constants/ScanScreenColors';
-import { BottomTabInset, Fonts, Palette } from '@/constants/theme';
+import { BottomTabInset, Fonts, Palette, Space } from '@/constants/theme';
 
 type ScanUnavailableProps = {
   icon: SymbolViewProps['name'];
@@ -30,12 +32,13 @@ export function ScanUnavailable({ icon, title, body, primary, onManualEntry, onS
       style={styles.screen}
       contentContainerStyle={[
         styles.container,
-        { paddingTop: insets.top + 12, paddingBottom: insets.bottom + BottomTabInset + 24 },
+        { paddingTop: insets.top + Space.block, paddingBottom: insets.bottom + BottomTabInset + Space.gutter },
       ]}>
       <StatusBar style="dark" />
-      <Text style={styles.screenTitle} accessibilityRole="header">
-        Scanner un livre
-      </Text>
+      <View style={styles.bar}>
+        <Logo />
+      </View>
+      <Headline>Scanner *un livre*</Headline>
 
       <View style={styles.content}>
         <ScanIllustration icon={icon} />
@@ -100,28 +103,25 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: Space.gutter,
   },
-  screenTitle: {
-    color: C.text,
-    fontFamily: Fonts.display,
-    fontSize: 22,
-    lineHeight: 28,
-    fontWeight: '700',
-    letterSpacing: -0.55,
-    textAlign: 'center',
+  // Same height as the bar of the home tab, so the logo sits at the same place on every tab
+  bar: {
+    justifyContent: 'center',
+    minHeight: 40,
+    marginBottom: Space.item,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 24,
+    paddingVertical: Space.gutter,
   },
   text: {
     alignItems: 'center',
-    gap: 8,
+    gap: Space.item,
     maxWidth: 300,
-    marginTop: 31,
+    marginTop: Space.section,
   },
   title: {
     color: C.text,
@@ -142,8 +142,8 @@ const styles = StyleSheet.create({
   },
   actions: {
     alignSelf: 'stretch',
-    gap: 12,
-    marginTop: 30,
+    gap: Space.block,
+    marginTop: Space.section,
   },
   button: {
     flexDirection: 'row',
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   primary: {
-    backgroundColor: C.primary,
+    backgroundColor: C.action,
     experimental_backgroundImage: 'linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(0, 0, 0, 0.1) 100%)',
   },
   secondary: {

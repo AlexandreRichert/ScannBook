@@ -1,6 +1,7 @@
-import { useRouter } from 'expo-router';
+import { useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { useOpenBook, type BookTarget } from '@/components/library/BookOpening';
 import { PressableScale } from '@/components/ui/PressableScale';
 import { Fonts } from '@/constants/theme';
 import type { LibraryBook } from '@/data/Library';
@@ -18,7 +19,8 @@ export function BookSpine({
   /** False inside something already pressable, where a nested button is invalid on web. */
   interactive?: boolean;
 }) {
-  const router = useRouter();
+  const openBook = useOpenBook();
+  const ref = useRef<BookTarget>(null);
   const { color, thickness, length, ink, fillet } = spineLook(book.isbn13, scale);
   const authors = book.authors.length > 0 ? book.authors.join(', ') : 'Auteur inconnu';
   const box = [styles.spine, { width: thickness, height: length, backgroundColor: color }];
@@ -41,13 +43,16 @@ export function BookSpine({
   if (!interactive) return <View style={box}>{label}</View>;
 
   return (
-    <PressableScale
-      onPress={() => router.push(`/book/${book.isbn13}`)}
-      accessibilityRole="button"
-      accessibilityLabel={`${book.title}, ${authors}`}
-      style={[box]}>
-      {label}
-    </PressableScale>
+    // The plain View is what gets measured to start the opening animation from the spine's place
+    <View ref={ref} collapsable={false}>
+      <PressableScale
+        onPress={() => openBook(book, ref, color)}
+        accessibilityRole="button"
+        accessibilityLabel={`${book.title}, ${authors}`}
+        style={box}>
+        {label}
+      </PressableScale>
+    </View>
   );
 }
 

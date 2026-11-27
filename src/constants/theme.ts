@@ -1,5 +1,6 @@
 import '@/global.css';
 
+import { Caveat_700Bold } from '@expo-google-fonts/caveat/700Bold';
 import { DMSans_400Regular } from '@expo-google-fonts/dm-sans/400Regular';
 import { DMSans_500Medium } from '@expo-google-fonts/dm-sans/500Medium';
 import { DMSans_700Bold } from '@expo-google-fonts/dm-sans/700Bold';
@@ -25,10 +26,16 @@ export const Palette = {
   line: '#DDD7CC',
   /** Edge of fields and outlined buttons: 3:1 against paper, as WCAG asks for control boundaries. */
   lineStrong: '#8F8A82',
-  accent: '#EE5B3A',
-  accentStrong: '#C03D1D',
+  // Light brown, the main color: active tab, progress, scan line, large headers. White on it is 3.2:1, enough for
+  // icons and large titles only.
+  accent: '#B08968',
+  /** Filled buttons and links: white on it is 5.8:1, which the lighter accent misses. */
+  accentStrong: '#8A5A3C',
+  /** Cream, for tinted cards and bands. */
+  accentSoft: '#F0E4D2',
   danger: '#B3261E',
-  wood: '#2A2623',
+  // Light oak: the shelves read as wood, and no longer as the ink used for text
+  wood: '#A8845C',
   woodWall: '#EAE3D7',
 } as const;
 
@@ -49,6 +56,8 @@ export const ShelfTints = Object.fromEntries(
 export const Fonts = {
   display: 'SpaceGrotesk',
   body: 'DMSans',
+  /** Handwriting, for a few words of the large titles only. */
+  script: 'Caveat',
   mono: Platform.select({ ios: 'ui-monospace', web: 'var(--font-mono)', default: 'monospace' }),
 } as const;
 
@@ -69,6 +78,10 @@ export const AppFonts: FontFamilyDefinition[] = [
       { path: DMSans_700Bold, weight: 700, style: 'normal' },
     ],
   },
+  {
+    fontFamily: Fonts.script,
+    fontDefinitions: [{ path: Caveat_700Bold, weight: 700, style: 'normal' }],
+  },
 ];
 
 export const BottomTabBar = { height: 64, gap: 16 } as const;
@@ -76,3 +89,14 @@ export const BottomTabBar = { height: 64, gap: 16 } as const;
 // Room the floating tab bar takes above the safe area, for scroll content to clear it
 export const BottomTabInset = BottomTabBar.height + BottomTabBar.gap;
 export const MaxContentWidth = 800;
+
+/**
+ * Spacing rules, in points, from the smallest to the largest:
+ * `tight` between two lines of one group (title and author),
+ * `item` between small things in a row (icon and label),
+ * `block` between a section title and its content, and between cards,
+ * `card` inside a card, on every side,
+ * `gutter` on the left and right of a screen,
+ * `section` between two sections of a screen.
+ */
+export const Space = { tight: 4, item: 8, block: 12, card: 16, gutter: 24, section: 32 } as const;

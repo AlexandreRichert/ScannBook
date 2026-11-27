@@ -2,7 +2,7 @@ import { SymbolView } from 'expo-symbols';
 import { Children, Fragment, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Fonts, Palette } from '@/constants/theme';
+import { Fonts, Palette, Space } from '@/constants/theme';
 
 /** Titled card of settings rows separated by thin rules (Figma frame 20). */
 export function SettingsGroup({ title, children }: { title?: string; children: ReactNode }) {
@@ -22,10 +22,10 @@ export function SettingsGroup({ title, children }: { title?: string; children: R
   );
 }
 
-/** Small caps heading shared by every section of the profile. */
+/** Section heading, the same as on the home tab. */
 export function SectionTitle({ children }: { children: ReactNode }) {
   return (
-    <Text style={styles.caps} accessibilityRole="header">
+    <Text style={styles.sectionTitle} accessibilityRole="header">
       {children}
     </Text>
   );
@@ -78,20 +78,18 @@ export function SettingsRow({ label, value, placeholder, onPress, accessibilityH
 
 const styles = StyleSheet.create({
   group: {
-    gap: 8,
+    gap: Space.block,
   },
-  caps: {
-    paddingHorizontal: 4,
-    color: Palette.inkTertiary,
+  sectionTitle: {
+    color: Palette.ink,
     fontFamily: Fonts.display,
-    fontSize: 11,
-    lineHeight: 14,
-    fontWeight: '500',
-    letterSpacing: 0.88,
-    textTransform: 'uppercase',
+    fontSize: 20,
+    lineHeight: 26,
+    fontWeight: '700',
+    letterSpacing: -0.4,
   },
   card: {
-    paddingHorizontal: 16,
+    paddingHorizontal: Space.card,
     borderRadius: 6,
     backgroundColor: Palette.paperRaised,
     borderWidth: 1,

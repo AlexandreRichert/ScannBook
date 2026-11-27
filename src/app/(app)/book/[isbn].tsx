@@ -5,12 +5,13 @@ import { ScrollView, StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BOOK_SHEET_GUTTER } from '@/components/book/BookSheet';
+import { BOOK_HEADER_BAR, BOOK_SHEET_GUTTER, BOOK_SHEET_TOP } from '@/components/book/BookSheet';
 import { BookSheetSkeleton } from '@/components/book/BookSheetSkeleton';
 import { BookStatus, LookupErrorStatus, StatusButton, StatusText } from '@/components/book/BookStatus';
-import { LibraryPanel } from '@/components/library/LibraryPanel';
+import { GuestLibraryPanel, LibraryPanel } from '@/components/library/LibraryPanel';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { Fonts, MaxContentWidth } from '@/constants/theme';
+import { useAuth } from '@/hooks/useAuth';
 import { useBookByIsbn, type BookByIsbnState } from '@/hooks/useBookByIsbn';
 import { invalidIsbnMessage } from '@/lib/BookLookupMessages';
 
@@ -36,7 +37,8 @@ export default function BookScreen() {
           headerBackTitle: 'Retour',
           headerTintColor: C.primary,
           headerBackTitleStyle: { fontFamily: Fonts.body },
-          headerStyle: { backgroundColor: C.background },
+          // The band of the sheet, a blur of the cover, runs behind the header up to the top of the screen
+          headerTransparent: true,
           headerShadowVisible: false,
         }}
       />
@@ -45,7 +47,8 @@ export default function BookScreen() {
         style={styles.screen}
         contentContainerStyle={[
           styles.content,
-          isStatus && styles.statusContent,
+          // A message has no band to fill the room behind the transparent header
+          isStatus && [styles.statusContent, { paddingTop: insets.top + BOOK_HEADER_BAR }],
           { paddingBottom: insets.bottom + 24 },
         ]}>
         <Animated.View key={state.status} entering={FadeIn.duration(220)}>
@@ -58,6 +61,7 @@ export default function BookScreen() {
 
 function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => void }) {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
 
   // `navigate` goes back to the tabs already in the stack and switches to the
   // scanner, whether the book was opened from it, from the manual entry or by a link.
@@ -70,8 +74,10 @@ function Content({ state, onRetry }: { state: BookByIsbnState; onRetry: () => vo
     case 'loading':
       return <BookSheetSkeleton />;
     case 'success':
-      return (
+      return isSignedIn ? (
         <LibraryPanel key={state.book.isbn13} book={state.book} />
+      ) : (
+        <GuestLibraryPanel book={state.book} />
       );
     case 'not-found':
       return (
@@ -114,7 +120,7 @@ const styles = StyleSheet.create({
     maxWidth: MaxContentWidth,
     alignSelf: 'center',
     paddingHorizontal: BOOK_SHEET_GUTTER,
-    paddingTop: 8,
+    paddingTop: BOOK_SHEET_TOP,
   },
   statusContent: {
     flexGrow: 1,

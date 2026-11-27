@@ -10,6 +10,7 @@ import { SearchStatus } from '@/components/search/SearchStatus';
 import { BookScreenColors as C } from '@/constants/BookScreenColors';
 import { MaxContentWidth } from '@/constants/theme';
 import { useBookSearch } from '@/hooks/useBookSearch';
+import { useAuth } from '@/hooks/useAuth';
 import { useLibraryShelves } from '@/hooks/useLibraryShelves';
 import type { BookInfo } from '@/types/Book';
 
@@ -19,7 +20,9 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const { query, setQuery, submit, retry, state } = useBookSearch();
   const results = state.status === 'success' ? state.results : [];
-  const shelves = useLibraryShelves(results.map((book) => book.isbn13));
+  const { isSignedIn } = useAuth();
+  // A guest owns no book: an empty list keeps the hook from querying the library
+  const shelves = useLibraryShelves(isSignedIn ? results.map((book) => book.isbn13) : []);
 
   const openBook = (book: BookInfo) => router.push(`/book/${book.isbn13}`);
 
