@@ -8,6 +8,7 @@ import { ScanOverlay } from '@/components/scan/ScanOverlay';
 import { ScanUnavailable } from '@/components/scan/ScanUnavailable';
 import { ScanScreenColors as C } from '@/constants/ScanScreenColors';
 import { useNavigateOnce } from '@/hooks/useNavigateOnce';
+import { errorFeedback, successFeedback } from '@/lib/Haptics';
 import { parseIsbn } from '@/lib/Isbn';
 
 /** How long « Ce code-barres n'est pas un ISBN » stays after the code leaves the frame. */
@@ -54,13 +55,21 @@ function CameraScanner({ navigate, onManualEntry, onSearch }: CameraScannerProps
   // The callback fires several times per second: a ref locks synchronously,
   // before the state update is rendered, so only one navigation happens.
   const lockedRef = useRef(false);
+  // Same reason: the error vibration must fire once per rejected code, not per
+  // frame. Holds the code currently rejected, null when none is.
+  const rejectedCodeRef = useRef<string | null>(null);
   const rejectedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const setRejectedNow = useCallback((code: string | null) => {
+    rejectedCodeRef.current = code;
+    setRejected(code !== null);
+  }, []);
 
   const resume = useCallback(() => {
     lockedRef.current = false;
     setLocked(false);
-    setRejected(false);
-  }, []);
+    setRejectedNow(null);
+  }, [setRejectedNow]);
 
   // Only one camera preview can be active: mount it only while the screen is
   // focused, and start a fresh scan each time the user comes back.
@@ -96,17 +105,20 @@ function CameraScanner({ navigate, onManualEntry, onSearch }: CameraScannerProps
     const parsed = parseIsbn(data);
     if (parsed.ok) {
       lockedRef.current = true;
+      successFeedback();
       if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
-      setRejected(false);
+      setRejectedNow(null);
       setLocked(true);
       navigate(`/book/${parsed.isbn13}`);
       return;
     }
 
+    // Only when a new code gets rejected: the same one is reported many times a second.
+    if (rejectedCodeRef.current !== data) errorFeedback();
     // Shown as long as the code stays in view, then a little longer.
-    setRejected(true);
+    setRejectedNow(data);
     if (rejectedTimerRef.current) clearTimeout(rejectedTimerRef.current);
-    rejectedTimerRef.current = setTimeout(() => setRejected(false), REJECTED_MESSAGE_MS);
+    rejectedTimerRef.current = setTimeout(() => setRejectedNow(null), REJECTED_MESSAGE_MS);
   };
 
   // Waiting for the permission state.
